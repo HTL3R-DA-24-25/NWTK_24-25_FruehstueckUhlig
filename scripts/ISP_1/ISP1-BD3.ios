@@ -5,6 +5,7 @@ conf t
 hostname ISP1-BD3
 username cisco priv 15
 username cisco algorithm-type scrypt secret cisco
+no ip domain-lookup
 ip domain-name 5CN.at
 service password-enc
 crypto key generate rsa usage-keys mod 1024
@@ -61,7 +62,6 @@ int loopback 1
     exit
 
 router ospf 1
-    router-id 3.3.3.3
     passive-interface g0/2
     network 10.0.1.14 0.0.0.1 area 1
     network 10.0.1.16 0.0.0.1 area 1
@@ -78,3 +78,6 @@ router bgp 1
     neighbor 10.1.2.2 remote-as 1
     neighbor 10.1.2.2 update-source loopback 1 
     exit
+
+end
+wr mem

@@ -4,7 +4,7 @@ Python Skripte
 
 # Backbone
 
-![alt text](images/Backbone.png)
+![Image of Backbone](images/Backbone.png)
 
 ## ISP 1
 
@@ -34,7 +34,18 @@ Clients
 
 ### Users/Groups
 
-- AGDLP
+| Users        | Globals      | Domain Locals   |
+| ------------ | ------------ | --------------- |
+| lFruehstueck | G_Sales      | DL_Sales_M      |
+| bUhlig       | G_Marketing  | DL_Sales_R      |
+| aBauer       | G_Operations | DL_Marketing_M  |
+| cMaier       | G_Management | DL_Marketing_R  |
+|              |              | DL_Operations_M |
+|              |              | DL_Operations_R |
+|              |              | DL_Management_M |
+|              |              | DL_Management_R |
+|              |              | DL_Vorlagen_M   |
+|              |              | DL_Vorlagen_R   |
 
 ### GPOs
 

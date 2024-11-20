@@ -7,4 +7,4 @@
 
 ## Grober Plan
 
-![alt text](images/Grober_Plan.png)
+![Grober Plan](images/Grober_Plan.png)
