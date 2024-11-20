@@ -7,4 +7,4 @@
 
 ## Grober Plan
 
-![Grober Plan](images/Grober_Plan.png)
+![Grober Plan](./plan/Netzplan/Grober_Plan.png)

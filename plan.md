@@ -4,7 +4,7 @@ Python Skripte
 
 # Backbone
 
-![Image of Backbone](images/Backbone.png)
+![Image of Backbone](./plan/Netzplan/Backbone.png)
 
 ## ISP 1
 

@@ -48,7 +48,8 @@ Heute haben wir das geändert weil es so nicht sinnvoll war.
 
 ### Aktueller Netzplan
 
-[Link](../scripts/ISP_1/ISP1-BB1.ios)
+[Link](../plan/Netzplan/Backbone.png)
+![Backbone](../plan/Netzplan/Backbone.png)
 
 ### ISP1 Skripts
 
@@ -61,4 +62,5 @@ Heute haben wir das geändert weil es so nicht sinnvoll war.
 
 ### Gruppendiagramm
 
-[Gruppendiagramm](../plan/AD/Gruppen/)
+[Link](../plan/AD/Gruppen/Gruppen.png)
+![Gruppendiagramm](../plan/AD/Gruppen/Gruppen.png)
