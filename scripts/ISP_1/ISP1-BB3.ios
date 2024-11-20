@@ -1,0 +1,74 @@
+en
+conf t
+
+! Default Config
+hostname ISP1-BB3
+username cisco priv 15
+username cisco algorithm-type scrypt secret cisco
+ip domain-name 5CN.at
+service password-enc
+crypto key generate rsa usage-keys mod 1024
+ip ssh version 2
+
+no ip domain-lookup
+enable secret class
+line console 0
+    logging sync
+    exec-timeout 0 0
+    exit
+
+line vty 0 924
+    login local
+    transport input ssh
+    logging sync
+    exec-timeout 0 0
+    exit
+
+key chain OSPF
+    key 1
+        key-string cisco
+        cr hmac-sha-512
+        exit
+    exit
+
+! Network Interfaces
+interface GigabitEthernet0/0
+    description to_ISP1-BD2
+    ip address 10.0.1.13 255.255.255.254
+    ip ospf authentication key-chain OSPF
+    ip ospf network point-to-point
+    mpls ip
+    no shutdown
+    exit
+interface GigabitEthernet0/1
+    description to_ISP1-BD3
+    ip address 10.0.1.16 255.255.255.254
+    ip ospf authentication key-chain OSPF
+    ip ospf network point-to-point
+    mpls ip
+    no shutdown
+    exit
+interface GigabitEthernet0/2
+    description to_ISP1-BB2
+    ip address 10.0.1.9 255.255.255.254
+    ip ospf authentication key-chain OSPF
+    ip ospf network point-to-point
+    mpls ip
+    no shutdown
+    exit
+interface GigabitEthernet0/3
+    description to_ISP1-BB1
+    ip address 10.0.1.7 255.255.255.254
+    ip ospf authentication key-chain OSPF
+    ip ospf network point-to-point
+    mpls ip
+    no shutdown
+    exit
+
+router ospf 1
+    router-id 3.3.3.3
+    network 10.0.1.8 0.0.0.1 area 1
+    network 10.0.1.12 0.0.0.1 area 1
+    network 10.0.1.16 0.0.0.1 area 1
+    network 10.0.1.6 0.0.0.1 area 1
+    exit
