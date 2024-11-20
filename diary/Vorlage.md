@@ -8,18 +8,19 @@
 
 - [Big Topo Tagebuch](#big-topo-tagebuch)
   - [Inhaltsverzeichnis](#inhaltsverzeichnis)
-  - [Arbeit](#arbeit)
+  - [Beschriebung der erledigten Arbeit](#beschriebung-der-erledigten-arbeit)
   - [Arbeitspakete](#arbeitspakete)
     - [Erledigte](#erledigte)
     - [Angefangene](#angefangene)
     - [Anstehende](#anstehende)
   - [Änderungen](#änderungen)
-  - [Links zu den Ergebnissen](#links-zu-den-ergebnissen)
+  - [Ergebnisse](#ergebnisse)
     - [Aktueller Netzplan](#aktueller-netzplan)
     - [ISP1 Skripts](#isp1-skripts)
     - [Gruppendiagramm](#gruppendiagramm)
+    - [Neue Spezifikationen](#neue-spezifikationen)
 
-## Arbeit
+## Beschriebung der erledigten Arbeit
 
 Wir haben heute den Netzplan verfeinert und mit der Konfiguration des Backones begonnen. Der ISP 1 ist jetzt fertig konifguriert. Es ist außerdem eine Gruppenstruktur für das Active Directory erstellt.
 
@@ -44,7 +45,7 @@ Wir haben heute den Netzplan verfeinert und mit der Konfiguration des Backones b
 
 Heute haben wir das geändert weil es so nicht sinnvoll war.
 
-## Links zu den Ergebnissen
+## Ergebnisse
 
 ### Aktueller Netzplan
 
@@ -64,3 +65,7 @@ Heute haben wir das geändert weil es so nicht sinnvoll war.
 
 [Link](../plan/AD/Gruppen/Gruppen.png)
 ![Gruppendiagramm](../plan/AD/Gruppen/Gruppen.png)
+
+### Neue Spezifikationen
+
+[Link](../Spezifikationen.md)
