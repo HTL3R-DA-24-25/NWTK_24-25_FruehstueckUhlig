@@ -13,6 +13,7 @@
     - [Erledigt](#erledigt)
     - [Angefangen](#angefangen)
     - [Anstehend](#anstehend)
+  - [Änderungen](#änderungen)
   - [Ergebnisse](#ergebnisse)
     - [Aktueller Netzplan](#aktueller-netzplan)
     - [ISP1 Skripts](#isp1-skripts)
@@ -39,6 +40,10 @@ Wir haben heute den Netzplan verfeinert und mit der Konfiguration des Backones b
 1. ISP 2 Skripts
 2. Automatisierung beginnen
 3. PS Skripts für DC Konfiguration
+
+## Änderungen
+
+Heute haben wir das geändert weil es so nicht sinnvoll war.
 
 ## Ergebnisse
 
