@@ -8,7 +8,7 @@
 
 - [Big Topo Tagebuch](#big-topo-tagebuch)
   - [Inhaltsverzeichnis](#inhaltsverzeichnis)
-  - [Beschriebung der erledigten Arbeit](#beschriebung-der-erledigten-arbeit)
+  - [Beschreibung der erledigten Arbeit](#beschreibung-der-erledigten-arbeit)
   - [Arbeitspakete](#arbeitspakete)
     - [Erledigte](#erledigte)
     - [Angefangene](#angefangene)
@@ -20,7 +20,7 @@
     - [Gruppendiagramm](#gruppendiagramm)
     - [Neue Spezifikationen](#neue-spezifikationen)
 
-## Beschriebung der erledigten Arbeit
+## Beschreibung der erledigten Arbeit
 
 Wir haben heute den Netzplan verfeinert und mit der Konfiguration des Backones begonnen. Der ISP 1 ist jetzt fertig konifguriert. Es ist außerdem eine Gruppenstruktur für das Active Directory erstellt.
 
