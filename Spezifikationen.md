@@ -22,7 +22,7 @@ Python Skripte
 | Underlay  | OSPF   |
 | Overlay   | DM GRE |
 
-# Standort 1
+# Standort 1 - Wien
 
 ## Netzwerk
 
@@ -30,23 +30,18 @@ Python Skripte
 2 redundante Uplinks (FortiGate Firewalls)
 Clients
 
+![Logischer Plan](./plan/Netzplan/LogischerPlan_idea.png)
+
 ## Active Directory
 
 ### Users/Groups
+![Gruppendiagramm](./plan/AD/Gruppen/Gruppen.png)
 
-| Users        | Globals      | Domain Locals   |
-| ------------ | ------------ | --------------- |
-| lFruehstueck | G_Sales      | DL_Sales_M      |
-| bUhlig       | G_Marketing  | DL_Sales_R      |
-| aBauer       | G_Operations | DL_Marketing_M  |
-| cMaier       | G_Management | DL_Marketing_R  |
-|              |              | DL_Operations_M |
-|              |              | DL_Operations_R |
-|              |              | DL_Management_M |
-|              |              | DL_Management_R |
-|              |              | DL_Vorlagen_M   |
-|              |              | DL_Vorlagen_R   |
+### OUs
+![OU-Diagramm](./plan/AD/OUs/OU-Struktur.png)
 
 ### GPOs
 
 # Standort 2
+
+# Standort 3
