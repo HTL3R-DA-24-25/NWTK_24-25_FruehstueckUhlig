@@ -12,7 +12,7 @@ $networkAdapter = @{
     IPAddress      = "192.168.10.1"
     PrefixLength   = "24"
     DefaultGateway = "192.168.10.254"
-    DNS            = ("192.168.10.1", "192.168.10.2")
+    DNS            = ("192.168.10.1", "1.1.1.1")
 }
 
 $distinguishedName = ""
@@ -41,19 +41,19 @@ $ous = @(
 $globalGroups = @(
     @{
         Name     = "Sales"
-        MemberOf = @("Sales_M", "Marketing_R", "Management_R", "Vorlagen_R")
+        MemberOf = @("Sales_M", "Marketing_R", "Management_R", "Templates_R")
     }, @{
         Name     = "Marketing"
-        MemberOf = @("Marketing_M", "Operations_R", "Vorlagen_R")
+        MemberOf = @("Marketing_M", "Operations_R", "Templates_R")
     }, @{
         Name     = "Operations"
-        MemberOf = @("Operations_M", "Vorlagen_R")
+        MemberOf = @("Operations_M", "Templates_R")
     }, @{
         Name     = "Management"
-        MemberOf = @("Sales_R", "Operations_R", "Management_W", "Vorlagen_M")
+        MemberOf = @("Sales_R", "Operations_R", "Management_M", "Templates_M")
     }
 )
-$domainLocalGroups = @("Templates", "Sales", "Marketing", "Operations", "Management")
+$domainLocalGroups = @("Wien_Templates", "Wien_Sales", "Wien_Marketing", "Wien_Operations", "Wien_Management")
 $universialGroups = @("Templates", "Sales", "Marketing", "Operations", "Management")
 
 $users = @(
@@ -109,7 +109,8 @@ function Set-NetworkConfiguration {
         -PrefixLength $networkAdapter.PrefixLength `
         -DefaultGateway $networkAdapter.DefaultGateway  | Out-Null
     Set-DnsClientServerAddress -InterfaceAlias $networkAdapter.NewName -ServerAddresses $networkAdapter.DNS
-    Set-HcsNtpClientServerAddress -Primary $ntpServer
+    w32tm /config /manualpeerlist:"$ntpServer" /syncfromflags:manual /reliable:yes /update 
+    Restart-Service w32time
 }
 
 function Install-SSH {
@@ -172,7 +173,7 @@ function Add-UniversalGroups {
     foreach ($group in $universialGroups) {
         if (-not (Get-ADGroup -Filter "Name -eq 'U_$($group)_M'" -ErrorAction SilentlyContinue)) {
             New-ADGroup -Name "U_$($group)_M" -Path "OU=Groups,$distinguishedName" -GroupScope Universal -GroupCategory Security
-            Add-ADGroupMember -Identity "DL_$($group)_M" -Members "U_$($group)_M"
+            Add-ADGroupMember -Identity "DL_Wien_$($group)_M" -Members "U_$($group)_M"
             Write-Host "Universal Gruppe wurde erfolgreich erstellt: U_$($group)_M"
         }
         else {
@@ -180,7 +181,7 @@ function Add-UniversalGroups {
         }
         if (-not (Get-ADGroup -Filter "Name -eq 'U_$($group)_R'" -ErrorAction SilentlyContinue)) {
             New-ADGroup -Name "U_$($group)_R" -Path "OU=Groups,$distinguishedName" -GroupScope Universal -GroupCategory Security
-            Add-ADGroupMember -Identity "DL_$($group)_R" -Members "U_$($group)_R"
+            Add-ADGroupMember -Identity "DL_Wien_$($group)_R" -Members "U_$($group)_R"
             Write-Host "Universal Gruppe wurde erfolgreich erstellt: U_$($group)_R"
         }
         else {
@@ -196,17 +197,17 @@ function Add-DomainLocalGroups {
     foreach ($group in $domainLocalGroups) {
         if (-not (Get-ADGroup -Filter "Name -eq 'DL_Wien_$($group)_M'" -ErrorAction SilentlyContinue)) {
             New-ADGroup -Name "DL_Wien_$($group)_M" -Path "OU=Groups,$distinguishedName" -GroupScope DomainLocal -GroupCategory Security
-            Write-Host "Domain-Local Gruppe wurde erfolgreich erstellt: DL_Wien_$($group)_M"
+            Write-Host "Domain-Local Gruppe wurde erfolgreich erstellt: DL_$($group)_M"
         }
         else {
-            Write-Host "Domain-Local Gruppe existiert bereits: DL_Wien_$($group)_M"
+            Write-Host "Domain-Local Gruppe existiert bereits: DL_$($group)_M"
         }
         if (-not (Get-ADGroup -Filter "Name -eq 'DL_Wien_$($group)_R'" -ErrorAction SilentlyContinue)) {
             New-ADGroup -Name "DL_Wien_$($group)_R" -Path "OU=Groups,$($distinguishedName)" -GroupScope DomainLocal -GroupCategory Security
-            Write-Host "Domain-Local Gruppe wurde erfolgreich erstellt: DL_Wien_$($group)_R"
+            Write-Host "Domain-Local Gruppe wurde erfolgreich erstellt: DL_$($group)_R"
         }
         else {
-            Write-Host "Domain-Local Gruppe existiert bereits: DL_Wien_$($group)_R"
+            Write-Host "Domain-Local Gruppe existiert bereits: DL_$($group)_R"
         }
     }
 }
