@@ -1,4 +1,4 @@
-$stage = 3
+$stage = 1
 $password = "ganzgeheim123!"
 $computerName = "DC2"
 $domainAdministratorUser = "Administrator"
@@ -64,8 +64,8 @@ switch ($stage) {
     1 { 
         Set-DefaultConfiguration
         Set-NetworkConfiguration
-        Install-SSH
-        #shutdown /r /t 0
+        # Install-SSH
+        shutdown /r /t 0
     }
     2 { 
         Install-ActiveDirectory
