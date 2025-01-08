@@ -1,0 +1,40 @@
+!-----------------
+!ISP1-SW
+!-----------------
+
+!Grundkonfig
+
+en
+conf t
+hostname ISP1-SW
+
+ip domain-name Lil-BT_FRU_UHL
+
+username cisco priv 15 algo sc sec cisco
+no ip domain-lo
+
+crypto key generate rsa us mod 1024
+ip ssh version 2
+
+service password-enc
+
+mpls ip
+
+line vty 0 924
+    logg sync
+    transport input ssh
+    login local
+    exec-time 0
+exit
+
+line con 0
+    logg sync
+    no login
+    exec-time 0
+exit
+end
+
+!Write
+
+end
+wr
