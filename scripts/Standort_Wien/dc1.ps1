@@ -82,6 +82,11 @@ $users = @(
 
 $passwordSecure = $(ConvertTo-SecureString $password -AsPlainText -Force)
 
+function Set-Sites {
+    Rename-ADObject -Identity "CN=Default-First-Site-Name,CN=Sites,CN=Configuration,$distinguishedName" -NewName "Wien"
+    New-ADReplicationSubnet -Name "192.168.10.0/24" -Site "Wien"
+    New-ADReplicationSubnet -Name "192.168.100.0/24" -Site "Wien"
+}
 
 function Install-ActiveDirectory {
     Add-WindowsFeature AD-Domain-Services -IncludeManagementTools
