@@ -2,9 +2,9 @@
 
 Python Skripte
 
-# Backbone
+# Netzplan
 
-![Image of Backbone](./plan/Netzplan/Backbone.png)
+![Image of Backbone](./plan/Netzplan/Netzplan.png)
 
 ## ISP 1
 
@@ -30,14 +30,14 @@ Python Skripte
 2 redundante Uplinks (FortiGate Firewalls)
 Clients
 
-![Logischer Plan](./plan/Netzplan/LogischerPlan_idea.png)
-
 ## Active Directory
 
 ### Users/Groups
+
 ![Gruppendiagramm](./plan/AD/Gruppen/Gruppen.png)
 
 ### OUs
+
 ![OU-Diagramm](./plan/AD/OUs/OU-Struktur.png)
 
 ### GPOs
