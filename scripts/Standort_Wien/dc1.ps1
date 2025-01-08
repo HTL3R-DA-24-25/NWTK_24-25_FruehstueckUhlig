@@ -1,11 +1,84 @@
 $stage = 1
 $password = "ganzgeheim123!"
-$domainName = "corp.FruUhl.at"
-$computerName = "WinUhligS1"
-$netbios = "CORP"
+$domainName = "wien.FruUhl.at"
+$computerName = "DC1"
+$netbios = "WIEN"
 $localAdministratorUserName = "Administrator"
 $ntpServer = "time.FruUhl.at"
 
+$networkAdapter = @{
+    Name           = "E*"
+    NewName        = "DC"
+    IPAddress      = "192.168.10.1"
+    PrefixLength   = "24"
+    DefaultGateway = "192.168.10.254"
+    DNS            = ("192.168.10.1", "192.168.10.2")
+}
+
+$distinguishedName = ""
+foreach ($part in $domainName.Split(".")) {
+    $distinguishedName += "DC=$part,"
+}
+$distinguishedName = $distinguishedName.TrimEnd(",")
+
+
+$ous = @(
+    @{
+        Name = "Sales"
+        Path = "$distinguishedName"
+    }, @{
+        Name = "Marketing"
+        Path = "$distinguishedName"
+    }, @{
+        Name = "Operations"
+        Path = "$distinguishedName"
+    }, @{
+        Name = "Management"
+        Path = "$distinguishedName"
+    }
+)
+
+$globalGroups = @(
+    @{
+        Name     = "Sales"
+        MemberOf = @("Sales_M", "Marketing_R", "Management_R", "Vorlagen_R")
+    }, @{
+        Name     = "Marketing"
+        MemberOf = @("Marketing_M", "Operations_R", "Vorlagen_R")
+    }, @{
+        Name     = "Operations"
+        MemberOf = @("Operations_M", "Vorlagen_R")
+    }, @{
+        Name     = "Management"
+        MemberOf = @("Sales_R", "Operations_R", "Management_W", "Vorlagen_M")
+    }
+)
+$domainLocalGroups = @("Templates", "Sales", "Marketing", "Operations", "Management")
+$universialGroups = @("Templates", "Sales", "Marketing", "Operations", "Management")
+
+$users = @(
+    @{
+        Name         = "Linus Frühstück"
+        UserName     = "lFreuhstueck"
+        GlobalGroups = @("G_Sales")
+        Path         = "OU=Sales,$distinguishedName"
+    }, @{
+        Name         = "Bastian Uhlig"
+        UserName     = "bUhlig"
+        GlobalGroups = @("G_Marketing")
+        Path         = "OU=Marketing,$distinguishedName"
+    }, @{
+        Name         = "Alfred Bauer"
+        UserName     = "aBauer"
+        GlobalGroups = @("G_Operations")
+        Path         = "OU=Operations,$distinguishedName"
+    }, @{
+        Name         = "Christine Maier"
+        UserName     = "cMaier"
+        GlobalGroups = @("G_Management")
+        Path         = "OU=Management,$distinguishedName"
+    }
+)
 
 $passwordSecure = $(ConvertTo-SecureString $password -AsPlainText -Force)
 
@@ -45,6 +118,99 @@ function Install-SSH {
     Set-Service -Name sshd -StartupType 'Automatic'
 }
 
+function Set-OUs {
+    foreach ($ou in $ous) {
+        if (-not (Get-ADOrganizationalUnit -Filter "DistinguishedName -eq 'OU=$($ou.Name),$($ou.Path)'" -ErrorAction SilentlyContinue)) {
+            New-ADOrganizationalUnit -Name $ou.Name -Path $ou.Path
+            New-ADOrganizationalUnit -Name "Computers" -Path "OU=$($ou.Name),$($ou.Path)"
+            New-ADOrganizationalUnit -Name "Users" -Path "OU=$($ou.Name),$($ou.Path)"
+            New-ADOrganizationalUnit -Name "Special Accounts" -Path "OU=$($ou.Name),$($ou.Path)"
+            Write-Host "OU wurde erfolgreich erstellt: $($ou.Name)"
+        }
+        else {
+            Write-Host "OU existiert bereits: $($ou.Name)"
+        }
+    } 
+}
+
+function Add-GlobalGroups {
+    if (-not (Get-ADOrganizationalUnit -Filter "DistinguishedName -eq 'OU=Groups, $($distinguishedName)'")) {
+        New-ADOrganizationalUnit -Name "Groups" -Path $distinguishedName
+    }
+    foreach ($group in $globalGroups) {
+        if (-not (Get-ADGroup -Filter "Name -eq 'G_$($group.Name)'" -ErrorAction SilentlyContinue)) {
+            New-ADGroup -Name "G_$($group.Name)" -Path "OU=Groups,$distinguishedName" -GroupScope Global -GroupCategory Security
+            foreach ($parent in $group.MemberOf) {
+                Add-ADGroupMember -Identity "U_$parent" -Members "G_$($group.Name)"
+            }
+            Write-Host "Globale Gruppe wurde erfolgreich erstellt: G_$($group.Name)"
+        }
+        else {
+            Write-Host "Globale Gruppe existiert bereits: G_$($group.Name)"
+        }
+    }
+}
+
+function Add-Users {
+    foreach ($user in $users) {
+        if (-not (Get-ADUser -Filter "Name -eq '$($user.UserName)'" -ErrorAction SilentlyContinue)) {
+            New-ADUser -Name $user.UserName -Path $user.Path -AccountPassword $passwordSecure -ChangePasswordAtLogon $false -Enabled $true -GivenName $user.FullName -DisplayName $user.FullName -UserPrincipalName "$($user.UserName)@$domainName"
+            Write-Host "Benutzer wurde erfolgreich erstellt: $($user.UserName)"
+        }
+        else {
+            Write-Host "Benutzer existiert bereits: $($user.UserName)"
+        }
+        foreach ($group in $user.GlobalGroups) {
+            Add-ADGroupMember -Identity "$($group)" -Members $user.UserName
+        }
+    }
+}
+function Add-UniversalGroups {
+    if (-not (Get-ADOrganizationalUnit -Filter "Name -eq 'Groups'" -ErrorAction SilentlyContinue)) {
+        New-ADOrganizationalUnit -Name "Groups" -Path $distinguishedName
+    }
+    foreach ($group in $universialGroups) {
+        if (-not (Get-ADGroup -Filter "Name -eq 'U_$($group)_M'" -ErrorAction SilentlyContinue)) {
+            New-ADGroup -Name "U_$($group)_M" -Path "OU=Groups,$distinguishedName" -GroupScope Universal -GroupCategory Security
+            Add-ADGroupMember -Identity "DL_$($group)_M" -Members "U_$($group)_M"
+            Write-Host "Universal Gruppe wurde erfolgreich erstellt: U_$($group)_M"
+        }
+        else {
+            Write-Host "Universal Gruppe existiert bereits: U_$($group)_M"
+        }
+        if (-not (Get-ADGroup -Filter "Name -eq 'U_$($group)_R'" -ErrorAction SilentlyContinue)) {
+            New-ADGroup -Name "U_$($group)_R" -Path "OU=Groups,$distinguishedName" -GroupScope Universal -GroupCategory Security
+            Add-ADGroupMember -Identity "DL_$($group)_R" -Members "U_$($group)_R"
+            Write-Host "Universal Gruppe wurde erfolgreich erstellt: U_$($group)_R"
+        }
+        else {
+            Write-Host "Universal Gruppe existiert bereits: U_$($group)_R"
+        }
+    }
+}
+
+function Add-DomainLocalGroups {
+    if (-not (Get-ADOrganizationalUnit -Filter "Name -eq 'Groups'" -ErrorAction SilentlyContinue)) {
+        New-ADOrganizationalUnit -Name "Groups" -Path $distinguishedName
+    }
+    foreach ($group in $domainLocalGroups) {
+        if (-not (Get-ADGroup -Filter "Name -eq 'DL_Wien_$($group)_M'" -ErrorAction SilentlyContinue)) {
+            New-ADGroup -Name "DL_Wien_$($group)_M" -Path "OU=Groups,$distinguishedName" -GroupScope DomainLocal -GroupCategory Security
+            Write-Host "Domain-Local Gruppe wurde erfolgreich erstellt: DL_Wien_$($group)_M"
+        }
+        else {
+            Write-Host "Domain-Local Gruppe existiert bereits: DL_Wien_$($group)_M"
+        }
+        if (-not (Get-ADGroup -Filter "Name -eq 'DL_Wien_$($group)_R'" -ErrorAction SilentlyContinue)) {
+            New-ADGroup -Name "DL_Wien_$($group)_R" -Path "OU=Groups,$($distinguishedName)" -GroupScope DomainLocal -GroupCategory Security
+            Write-Host "Domain-Local Gruppe wurde erfolgreich erstellt: DL_Wien_$($group)_R"
+        }
+        else {
+            Write-Host "Domain-Local Gruppe existiert bereits: DL_Wien_$($group)_R"
+        }
+    }
+}
+
 switch ($stage) {
     1 { 
         Set-DefaultConfiguration
@@ -55,5 +221,12 @@ switch ($stage) {
     2 {
         Install-ActiveDirectory
         shutdown /r /t 0
+    }
+    3 {
+        Set-OUs
+        Add-DomainLocalGroups
+        Add-UniversalGroups
+        Add-GlobalGroups
+        Add-Users
     }
 }
