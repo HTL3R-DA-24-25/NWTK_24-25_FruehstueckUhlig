@@ -1,77 +1,35 @@
+!-----------------
+!ISP1-BB3
+!-----------------
+
+!Grundkonfig
+
 en
 conf t
-
-! Default Config
 hostname ISP1-BB3
-username cisco priv 15
-username cisco algorithm-type scrypt secret cisco
-no ip domain-lookup
-ip domain-name 5CN.at
-service password-enc
-crypto key generate rsa usage-keys mod 1024
+
+ip domain-name Lil-BT_FRU_UHL
+
+username cisco priv 15 algo sc sec cisco
+no ip domain-lo
+
+crypto key generate rsa us mod 1024
 ip ssh version 2
 
-no ip domain-lookup
-enable secret class
-line console 0
-    logging sync
-    exec-timeout 0 0
-    exit
+service password-enc
+
+mpls ip
 
 line vty 0 924
-    login local
+    logg sync
     transport input ssh
-    logging sync
-    exec-timeout 0 0
-    exit
+    login local
+    exec-time 0
+exit
 
-key chain OSPF
-    key 1
-        key-string cisco
-        cr hmac-sha-512
-        exit
-    exit
-
-! Network Interfaces
-interface GigabitEthernet0/0
-    description to_ISP1-BD2
-    ip address 10.0.1.13 255.255.255.254
-    ip ospf authentication key-chain OSPF
-    ip ospf network point-to-point
-    mpls ip
-    no shutdown
-    exit
-interface GigabitEthernet0/1
-    description to_ISP1-BD3
-    ip address 10.0.1.16 255.255.255.254
-    ip ospf authentication key-chain OSPF
-    ip ospf network point-to-point
-    mpls ip
-    no shutdown
-    exit
-interface GigabitEthernet0/2
-    description to_ISP1-BB2
-    ip address 10.0.1.9 255.255.255.254
-    ip ospf authentication key-chain OSPF
-    ip ospf network point-to-point
-    mpls ip
-    no shutdown
-    exit
-interface GigabitEthernet0/3
-    description to_ISP1-BB1
-    ip address 10.0.1.7 255.255.255.254
-    ip ospf authentication key-chain OSPF
-    ip ospf network point-to-point
-    mpls ip
-    no shutdown
-    exit
-
-router ospf 1
-    network 10.0.1.8 0.0.0.1 area 1
-    network 10.0.1.12 0.0.0.1 area 1
-    network 10.0.1.16 0.0.0.1 area 1
-    network 10.0.1.6 0.0.0.1 area 1
-    exit
-
+line con 0
+    logg sync
+    no login
+    exec-time 0
+exit
 end
-wr mem

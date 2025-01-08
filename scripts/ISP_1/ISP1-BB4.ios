@@ -1,12 +1,12 @@
 !-----------------
-!ISP1-BD3
+!ISP1-BB4
 !-----------------
 
 !Grundkonfig
 
 en
 conf t
-hostname ISP1-BD3
+hostname ISP1-BB4
 
 ip domain-name Lil-BT_FRU_UHL
 
