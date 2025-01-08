@@ -84,6 +84,7 @@ $passwordSecure = $(ConvertTo-SecureString $password -AsPlainText -Force)
 
 function Set-Sites {
     Rename-ADObject -Identity "CN=Default-First-Site-Name,CN=Sites,CN=Configuration,$distinguishedName" -NewName "Wien"
+    New-ADReplicationSubnet -Name "192.168.0.0/24" -Site "Wien"
     New-ADReplicationSubnet -Name "192.168.10.0/24" -Site "Wien"
     New-ADReplicationSubnet -Name "192.168.100.0/24" -Site "Wien"
 }
@@ -200,15 +201,15 @@ function Add-DomainLocalGroups {
         New-ADOrganizationalUnit -Name "Groups" -Path $distinguishedName
     }
     foreach ($group in $domainLocalGroups) {
-        if (-not (Get-ADGroup -Filter "Name -eq 'DL_Wien_$($group)_M'" -ErrorAction SilentlyContinue)) {
-            New-ADGroup -Name "DL_Wien_$($group)_M" -Path "OU=Groups,$distinguishedName" -GroupScope DomainLocal -GroupCategory Security
+        if (-not (Get-ADGroup -Filter "Name -eq 'DL_$($group)_M'" -ErrorAction SilentlyContinue)) {
+            New-ADGroup -Name "DL_$($group)_M" -Path "OU=Groups,$distinguishedName" -GroupScope DomainLocal -GroupCategory Security
             Write-Host "Domain-Local Gruppe wurde erfolgreich erstellt: DL_$($group)_M"
         }
         else {
             Write-Host "Domain-Local Gruppe existiert bereits: DL_$($group)_M"
         }
-        if (-not (Get-ADGroup -Filter "Name -eq 'DL_Wien_$($group)_R'" -ErrorAction SilentlyContinue)) {
-            New-ADGroup -Name "DL_Wien_$($group)_R" -Path "OU=Groups,$($distinguishedName)" -GroupScope DomainLocal -GroupCategory Security
+        if (-not (Get-ADGroup -Filter "Name -eq 'DL_$($group)_R'" -ErrorAction SilentlyContinue)) {
+            New-ADGroup -Name "DL_$($group)_R" -Path "OU=Groups,$($distinguishedName)" -GroupScope DomainLocal -GroupCategory Security
             Write-Host "Domain-Local Gruppe wurde erfolgreich erstellt: DL_$($group)_R"
         }
         else {
@@ -221,7 +222,7 @@ switch ($stage) {
     1 { 
         Set-DefaultConfiguration
         Set-NetworkConfiguration
-        Install-SSH
+        # Install-SSH
         shutdown /r /t 0
     }
     2 {
@@ -234,5 +235,6 @@ switch ($stage) {
         Add-UniversalGroups
         Add-GlobalGroups
         Add-Users
+        Set-Sites
     }
 }
