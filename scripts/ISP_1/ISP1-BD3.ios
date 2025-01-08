@@ -33,3 +33,81 @@ line con 0
     exec-time 0
 exit
 end
+
+!Interfaces
+
+conf t
+
+int g0/0
+    desc to_ISP1-BB4
+    ip add 10.0.1.16 255.255.255.254
+    mpls ip
+    ip ospf authentication key-chain OSPF
+    no shut
+exit
+
+int g0/1
+    desc to_Standort2
+    ip add 103.152.126.25 255.255.255.248
+    mpls ip
+    no shut
+exit
+
+int g0/3
+    desc to_ISP1-BB2
+    ip add 10.0.1.4 255.255.255.252
+    mpls ip
+    ip ospf authentication key-chain OSPF
+    no shut
+exit
+
+int lo1
+    desc loopback_for_BGP
+    ip add 10.0.1.103 255.255.255.255
+    no shut
+end
+
+!Keychains
+
+conf t
+
+key chain OSPF
+    key 1
+        cryptographic-algorithm hmac-sha-512
+        key-string OSPFSECRETKEY
+end
+
+!OSPF
+
+conf t
+
+router ospf 1
+    router-id 10.0.1.4
+
+    network 10.0.1.4 0.0.0.1 area 1
+    network 10.0.1.16 0.0.0.1 area 1
+
+    network 10.0.1.103 0.0.0.0 area 1
+end
+
+!BGP
+
+conf t
+
+router BGP 1
+    network 103.152.126.24 mask 255.255.255.248
+    
+    neighbor 10.0.1.101 remote-as 1
+	neighbor 10.0.1.101 update-source lo1
+
+    neighbor 10.0.1.102 remote-as 1
+	neighbor 10.0.1.102 update-source lo1
+
+    neighbor 10.0.1.104 remote-as 1
+	neighbor 10.0.1.104 update-source lo1
+end
+
+!Write
+
+end
+wr

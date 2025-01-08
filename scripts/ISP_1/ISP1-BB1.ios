@@ -33,3 +33,60 @@ line con 0
     exec-time 0
 exit
 end
+
+!Interfaces
+
+conf t
+
+int g0/0
+    desc to_BD1
+    ip add 10.0.1.1 255.255.255.254
+    mpls ip
+    ip ospf authentication key-chain OSPF
+    no shut
+exit
+
+int g0/1
+    desc to_BD2
+    ip add 10.0.1.7 255.255.255.254
+    mpls ip
+    ip ospf authentication key-chain OSPF
+    no shut
+exit
+
+int g0/2
+    desc to_ISP1-SW
+    ip add 10.0.1.25 255.255.255.248
+    mpls ip
+    ip ospf authentication key-chain OSPF
+    no shut
+exit
+
+end
+
+!Keychains
+
+conf t
+
+key chain OSPF
+    key 1
+        cryptographic-algorithm hmac-sha-512
+        key-string OSPFSECRETKEY
+end
+
+!OSPF
+
+conf t
+
+router ospf 1
+    router-id 10.0.1.1
+
+    network 10.0.1.0 0.0.0.1 area 1
+    network 10.0.1.6 0.0.0.1 area 1
+    network 10.0.1.24 0.0.0.7 area 1
+end
+
+!Write
+
+end
+wr
