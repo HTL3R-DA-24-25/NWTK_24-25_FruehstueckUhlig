@@ -1,0 +1,110 @@
+!-----------------
+!ISP2-BD3
+!-----------------
+
+!Grundkonfig
+
+en
+conf t
+hostname ISP2-BD3
+
+ip domain-name Lil-BT_FRU_UHL
+
+username cisco priv 15 algo sc sec cisco
+no ip domain-lo
+
+crypto key generate rsa us mod 1024
+ip ssh version 2
+
+service password-enc
+
+line vty 0 924
+    logg sync
+    transport input ssh
+    login local
+    exec-time 0
+exit
+
+line con 0
+    logg sync
+    no login
+    exec-time 0
+exit
+end
+
+!Interfaces
+
+conf t
+
+int g0/0
+    desc to_ISP2-BB1
+    ip add 10.0.2.15 255.255.255.254
+    ip ospf authentication key-chain OSPF
+    no shut
+exit
+
+int g0/1
+    desc to_ISP2-BB3
+    ip add 10.0.2.17 255.255.255.254
+    ip ospf authentication key-chain OSPF
+    no shut
+exit
+
+int g0/2
+    desc to_ISP-1
+    ip add 103.152.126.98 255.255.255.248
+    no shut
+exit
+
+int lo1
+    desc loopback_for_BGP
+    ip add 10.0.2.103 255.255.255.255
+    no shut
+end
+
+!Keychains
+
+conf t
+
+key chain OSPF
+    key 1
+        cryptographic-algorithm hmac-sha-512
+        key-string OSPFSECRETKEY
+end
+
+!OSPF
+
+conf t
+
+router ospf 1
+    router-id 10.0.2.15
+
+    network 10.0.2.14 0.0.0.1 area 1
+    network 10.0.2.16 0.0.0.1 area 1
+
+    network 10.0.2.103 0.0.0.0 area 1
+end
+
+!BGP
+
+conf t
+
+router BGP 2
+    network 103.152.126.96 mask 255.255.255.248
+    
+    neighbor 10.0.2.101 remote-as 2
+	neighbor 10.0.2.101 update-source lo1
+	neighbor 10.0.2.101 next-hop-self
+
+    neighbor 10.0.2.102 remote-as 2
+	neighbor 10.0.2.102 update-source lo1
+    neighbor 10.0.2.101 next-hop-self
+
+	neighbor 103.152.126.97 remote-as 1
+	neighbor 103.152.126.97 update-source g0/2
+end
+
+!Write
+
+end
+wr
