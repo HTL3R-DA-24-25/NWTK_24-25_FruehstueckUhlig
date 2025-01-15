@@ -60,6 +60,22 @@ int lo1
     desc loopback_for_BGP
     ip add 10.0.2.103 255.255.255.255
     no shut
+exit
+
+int lo2
+    desc for_tunnel
+    ip add 10.0.2.113 255.255.255.255
+    no shut
+exit
+
+!Tunnel
+int tun2
+    desc to_BD-1
+    ip add 101.100.13.3 255.255.255.0
+    tunnel source 10.0.2.113
+    tunnel destination 10.0.2.111
+    ip ospf authentication key-chain OSPF
+    tunnel mode gre ip
 end
 
 !Keychains
@@ -81,8 +97,12 @@ router ospf 1
 
     network 10.0.2.14 0.0.0.1 area 1
     network 10.0.2.16 0.0.0.1 area 1
+    network 10.0.2.113 0.0.0.0 area 1
+exit
 
-    network 10.0.2.103 0.0.0.0 area 1
+router ospf 2
+    network 101.100.13.0 0.0.0.255 area 2
+    network 10.0.2.103 0.0.0.0 area 2
 end
 
 !BGP
@@ -98,7 +118,7 @@ router BGP 2
 
     neighbor 10.0.2.102 remote-as 2
 	neighbor 10.0.2.102 update-source lo1
-    neighbor 10.0.2.101 next-hop-self
+    neighbor 10.0.2.102 next-hop-self
 
 	neighbor 103.152.126.97 remote-as 1
 	neighbor 103.152.126.97 update-source g0/2
