@@ -1,0 +1,109 @@
+
+en
+conf t
+hostname SW-AD
+no ip domain-lookup
+username cisco priv 15
+username cisco algo scrypt secret cisco
+service password-enc
+ip domain-name Lil-BT_FRU_UHL
+crypto key generate rsa usage-ke mod 1024
+no ip routing
+
+default router 192.168.50.254
+
+line vty 0 1500
+	logging sync
+	login local
+	exec-timeout 0 0
+	transport input ssh
+exit
+
+line con 0
+	logging sync
+	exec-timeout 0 0
+exit
+
+vlan 1 
+    name Server
+    exit
+vlan 10
+    name DC
+    exit
+vlan 50
+    name Management
+    exit
+vlan 100
+    name Primary_clients
+    private-vlan primary
+    private-vlan association add 101
+    exit
+vlan 101
+    name private_clients
+    private-vlan isolated
+    exit
+vlan 200
+    name RSPAN
+    exit
+
+int vlan 50
+    ip address 192.168.50.2 255.255.255.0
+    no shut
+    exit
+
+int range g0/0-3, g1/0-3, g2/0-3, g3/0-3
+    shutdown
+    exit
+
+int g0/0
+    desc to_Fortigate
+    spanning-tree guard root 
+    switchport trunk encaps dot1q
+    switchport mode trunk
+    switchport trunk native vlan 99
+    switchport trunk allowed vlan 1,10,50,99,100,101
+    no shutdown
+    exit
+
+int g0/1
+    desc to_SW-Server
+    spanning-tree guard root 
+    switchport trunk encaps dot1q
+    switchport mode trunk
+    switchport trunk native vlan 99
+    switchport trunk allowed vlan 1,10,50,99,100,101
+    no shutdown
+    exit
+
+int g1/0
+    desc to_SW-Abt2
+    switchport trunk encaps dot1q
+    switchport mode trunk
+    switchport trunk native vlan 99
+    switchport trunk allowed vlan 50,99,100,101
+    no shutdown
+    exit
+
+int g1/1
+    desc to_SW-Abt1
+    switchport trunk encaps dot1q
+    switchport mode trunk
+    switchport trunk native vlan 99
+    switchport trunk allowed vlan 50,99,100,101
+    no shutdown
+    exit
+
+monitor session 1 source interface g3/0
+monitor session 1 destination remote vlan 200
+
+spanning-tree mode rapid-pvst
+spanning-t vlan 1 root primary
+spanning-t vlan 10 root primary
+spanning-t vlan 100 root primary
+spanning-t vlan 101 root primary
+spanning-t vlan 200 root primary
+
+spanning-tree loopguard default
+
+logging 192.168.0.1
+logging trap 6
