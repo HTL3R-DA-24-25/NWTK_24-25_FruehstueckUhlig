@@ -127,9 +127,6 @@ router BGP 2
 
     neighbor 10.0.2.103 remote-as 2
 	neighbor 10.0.2.103 update-source lo1
-
-	neighbor 103.152.126.18 remote-as 100
-	neighbor 103.152.126.18 update-source g0/2
 end
 
 !Write
