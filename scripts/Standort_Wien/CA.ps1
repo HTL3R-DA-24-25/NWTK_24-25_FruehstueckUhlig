@@ -1,4 +1,4 @@
-$stage = 1
+$stage = 3
 $password = "ganzgeheim123!"
 $domainName = "wien.FruUhl.at"
 $computerName = "CA"
@@ -11,28 +11,11 @@ foreach ($part in $domainName.Split(".")) {
     $distinguishedName += "DC=$part,"
 }
 $distinguishedName = $distinguishedName.TrimEnd(",")
-
-$CAName = "RootCA"  # Name of the Certification Authority
-$CRLDistributionPoints = @(
-    "file:///C:/Windows/System32/CertSrv/CertEnroll/$CAName.crl",
-    "http://pki.yourdomain.com/pki/$CAName.crl",
-    "ldap:///CN=$CAName,CN=CDP,CN=Public Key Services,CN=Services,CN=Configuration,$distinguishedName"
-)
-$CAParams = @{
-    CAType              = 'EnterpriseRootCA'
-    CACommonName        = $CAName
-    KeyLength           = 4096
-    HashAlgorithm       = 'SHA256'
-    ValidityPeriod      = 'Years'
-    ValidityPeriodUnits = 10
-    DatabaseDirectory   = 'C:\Windows\System32\CertSrv'
-    LogDirectory        = 'C:\Windows\System32\CertSrv'
-}
     
 $networkAdapter = @{
     Name           = "E*"
     NewName        = "DC"
-    IPAddress      = "192.168.10.3"
+    IPAddress      = "192.168.10.5"
     PrefixLength   = "24"
     DefaultGateway = "192.168.10.254"
     DNS            = ("192.168.10.1", "192.168.10.2")
@@ -70,21 +53,31 @@ function Install-SSH {
     Set-Service -Name sshd -StartupType 'Automatic'
 }
 
-function Install-CertificateAuthority {
-    Install-WindowsFeature AD-Certificate -IncludeManagementTools 
-    Install-AdcsCertificationAuthority @CAParams
-    foreach ($Path in $CRLDistributionPoints) {
-        Add-CACRLDistributionPoint -Uri $Path -Force
-    }
-    certutil -crl
+function Install-ADCS {
+    Add-WindowsFeature ADCS-Cert-Authority -IncludeManagementTools
+        Install-AdcsCertificationAuthority -CAType EnterpriseRootCa `
+        -CryptoProviderName "RSA#Microsoft Software Key Storage Provider" `
+        -KeyLength 2048 `
+        -HashAlgorithmName SHA256 `
+        -CACommonName "FruUhl Root CA" `
+        -CADistinguishedNameSuffix "$distinguishedName" `
+        -ValidityPeriod Years `
+        -ValidityPeriodUnits 10
+    Certutil -setreg CA\CRLPeriodUnits 1
+    Certutil -setreg CA\CRLPeriod "Weeks"
+    Certutil -setreg CA\CRLDeltaPeriodUnits 1
+    Certutil -setreg CA\CRLDeltaPeriod "Days"
+    Certutil -setreg CA\CRLOverlapPeriodUnits 12
+    Certutil -setreg CA\CRLOverlapPeriod "Hours"
+    Certutil -setreg CA\ValidityPeriodUnits 5
+    Certutil -setreg CA\ValidityPeriod "Years"
+    Certutil -setreg CA\AuditFilter 127
 
-    $AIAPaths = @(
-        "http://pki.$domainName/pki/$CAName.crt",
-        "ldap:///CN=$CAName,CN=AIA,CN=Public Key Services,CN=Services,CN=Configuration,$distinguishedName"
-    )
-    foreach ($Path in $AIAPaths) {
-        Add-CAAuthorityInformationAccess -Uri $Path -Force
-    }
+    Certutil -setreg CA\CACertPublicationURLs "1:C:\Windows\system32\CertSrv\CertEnroll\%1_%3%4.crt\n2:ldap:///CN=%7,CN=AIA,CN=Public Key Services,CN=Services,%6%11\n2:http://pki.wien.FruUhl.at/CertEnroll/%1_%3%4.crt"
+    Certutil -setreg CA\CRLPublicationURLs "65:C:\Windows\system32\CertSrv\CertEnroll\%3%8%9.crl\n79:ldap:///CN=%7%8,CN=%2,CN=CDP,CN=Public Key Services,CN=Services,%6%10\n6:http://pki.wien.FruUhl.at/CertEnroll/%3%8%9.crl\n65:file://\\WEB.wien.FruUhl.at\CertEnroll\%3%8%9.crl"
+
+    Copy-Item -Path 'C:\Windows\System32\CertSrv\CertEnroll\CA.wien.FruUhl.at_FruUhl Root CA.crt' `
+        -Destination '\\WEB.wien.FruUhl.at\C$\CertEnroll'
 }
 
 switch ($stage) {
@@ -99,6 +92,8 @@ switch ($stage) {
         # shutdown /r /t 0
     }
     3 {
-        Install-CertificateAuthority
+        Set-SConfig -AutoLaunch $false
+        Set-WinUserLanguageList -LanguageList "de-DE" -Force
+        Install-ADCS
     }
 }

@@ -1,4 +1,4 @@
-$stage = 1
+$stage = 3
 $password = "ganzgeheim123!"
 $domainName = "wien.FruUhl.at"
 $computerName = "DC1"
@@ -61,22 +61,22 @@ $users = @(
         Name         = "Linus Frühstück"
         UserName     = "lFreuhstueck"
         GlobalGroups = @("G_Sales")
-        Path         = "OU=Sales,$distinguishedName"
+        Path         = "OU=Users,OU=Sales,$distinguishedName"
     }, @{
         Name         = "Bastian Uhlig"
         UserName     = "bUhlig"
         GlobalGroups = @("G_Marketing")
-        Path         = "OU=Marketing,$distinguishedName"
+        Path         = "OU=Users,OU=Marketing,$distinguishedName"
     }, @{
         Name         = "Alfred Bauer"
         UserName     = "aBauer"
         GlobalGroups = @("G_Operations")
-        Path         = "OU=Operations,$distinguishedName"
+        Path         = "OU=Users,OU=Operations,$distinguishedName"
     }, @{
         Name         = "Christine Maier"
         UserName     = "cMaier"
         GlobalGroups = @("G_Management")
-        Path         = "OU=Management,$distinguishedName"
+        Path         = "OU=Users,OU=Management,$distinguishedName"
     }
 )
 
@@ -222,8 +222,8 @@ switch ($stage) {
     1 { 
         Set-DefaultConfiguration
         Set-NetworkConfiguration
-        # Install-SSH
-        shutdown /r /t 0
+        Install-SSH
+        # shutdown /r /t 0
     }
     2 {
         Install-ActiveDirectory
