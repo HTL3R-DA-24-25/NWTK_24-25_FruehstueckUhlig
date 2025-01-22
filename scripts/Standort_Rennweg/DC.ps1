@@ -1,25 +1,19 @@
 $stage = 3
 $password = "ganzgeheim123!"
-$computerName = "DC2"
+$computerName = "DC"
+$domainName = "wien.FruUhl.at"
 $domainAdministratorUser = "Administrator"
 $localAdministratorUser = "Administrator"
-$domainName = "wien.FruUhl.at"
-$ntpServer = "time.FruUhl.at"
+$readOnlyDomainController = $true
 
 $networkAdapter = @{
     Name           = "E*"
-    NewName        = "DC"
-    IPAddress      = "192.168.10.2"
+    NewName        = "Server"
+    IPAddress      = "172.16.100.1"
     PrefixLength   = "24"
-    DefaultGateway = "192.168.10.254"
+    DefaultGateway = "172.16.100.254"
     DNS            = ("192.168.10.1", "192.168.10.2")
 }
-
-$distinguishedName = ""
-foreach ($part in $domainName.Split(".")) {
-    $distinguishedName += "DC=$part,"
-}
-$distinguishedName = $distinguishedName.TrimEnd(",")
 
 $passwordSecure = $(ConvertTo-SecureString $password -AsPlainText -Force)
 $credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ("$domainAdministratorUser@$domainName", $passwordSecure)
@@ -31,11 +25,13 @@ function Install-ActiveDirectory {
         -InstallDns:$true `
         -DomainName $domainName `
         -SafeModeAdministratorPassword $passwordSecure `
+        -ReadOnlyReplica:$readOnlyDomainController `
+        -NoGlobalCatalog: (-not $readOnlyDomainController) `
         -NoRebootOnCompletion:$true `
-        -SiteName "Wien" `
-        -Force:$true 
+        -SiteName "Rennweg" `
+        -Force:$true `
+        -AllowPasswordReplicationAccountName @("Administrator")
 }
-
 function Set-DefaultConfiguration {
     Set-WinUserLanguageList -LanguageList "de-DE" -Force
     Set-LocalUser -Name $localAdministratorUser -Password $passwordSecure
@@ -50,8 +46,6 @@ function Set-NetworkConfiguration {
         -PrefixLength $networkAdapter.PrefixLength `
         -DefaultGateway $networkAdapter.DefaultGateway  | Out-Null
     Set-DnsClientServerAddress -InterfaceAlias $networkAdapter.NewName -ServerAddresses $networkAdapter.DNS
-    w32tm /config /manualpeerlist:"$ntpServer" /syncfromflags:manual /reliable:yes /update 
-    Restart-Service w32time
 }
 
 function Install-SSH {
@@ -73,6 +67,5 @@ switch ($stage) {
     }
     3 { 
         Set-SConfig -AutoLaunch $false
-        Set-WinUserLanguageList -LanguageList "de-DE" -Force
     }
 }

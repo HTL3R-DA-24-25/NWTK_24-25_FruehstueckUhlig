@@ -87,6 +87,13 @@ function Set-Sites {
     New-ADReplicationSubnet -Name "192.168.0.0/24" -Site "Wien"
     New-ADReplicationSubnet -Name "192.168.10.0/24" -Site "Wien"
     New-ADReplicationSubnet -Name "192.168.100.0/24" -Site "Wien"
+    New-ADReplicationSite -Name "Rennweg"
+    New-ADReplicationSubnet -Name "172.16.100.0/24" -Site "Rennweg"
+    New-ADReplicationSite -Name "Graz"
+    New-ADReplicationSubnet -Name "172.16.0.0/24" -Site "Graz"
+    New-ADReplicationSubnet -Name "172.16.10.0/24" -Site "Graz"
+    New-ADReplicationSiteLink -Name "Wien-Rennweg" -SitesIncluded Wien, Rennweg -Cost 100 -ReplicationFrequencyInMinutes 15 -InterSiteTransportProtocol IP
+    New-ADReplicationSiteLink -Name "Wien-Graz" -SitesIncluded Wien, Graz -Cost 100 -ReplicationFrequencyInMinutes 15 -InterSiteTransportProtocol IP
 }
 
 function Install-ActiveDirectory {

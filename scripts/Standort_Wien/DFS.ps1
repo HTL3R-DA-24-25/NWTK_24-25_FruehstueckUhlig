@@ -1,10 +1,12 @@
 $stage = 2
 $password = "ganzgeheim123!"
 $domainName = "wien.FruUhl.at"
-$computerName = "CA"
+$computerName = "DFS"
 $domainAdministratorUser = "Administrator"
 $localAdministratorUser = "Administrator"
 $ntpServer = "time.FruUhl.at"
+$NamespaceName = "DFSFruUhl"
+$FolderName = "DFS"
 
 $distinguishedName = ""
 foreach ($part in $domainName.Split(".")) {
@@ -15,11 +17,13 @@ $distinguishedName = $distinguishedName.TrimEnd(",")
 $networkAdapter = @{
     Name           = "E*"
     NewName        = "DC"
-    IPAddress      = "192.168.10.5"
+    IPAddress      = "192.168.10.10"
     PrefixLength   = "24"
     DefaultGateway = "192.168.10.254"
     DNS            = ("192.168.10.1", "192.168.10.2")
 }
+
+$folders = @("Templates", "Sales", "Marketing", "Operations", "Management")
 
 $passwordSecure = $(ConvertTo-SecureString $password -AsPlainText -Force)
 $credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ("$domainAdministratorUser@$domainName", $passwordSecure)
@@ -53,31 +57,23 @@ function Install-SSH {
     Set-Service -Name sshd -StartupType 'Automatic'
 }
 
-function Install-ADCS {
-    Add-WindowsFeature ADCS-Cert-Authority -IncludeManagementTools
-        Install-AdcsCertificationAuthority -CAType EnterpriseRootCa `
-        -CryptoProviderName "RSA#Microsoft Software Key Storage Provider" `
-        -KeyLength 2048 `
-        -HashAlgorithmName SHA256 `
-        -CACommonName "FruUhl Root CA" `
-        -CADistinguishedNameSuffix "$distinguishedName" `
-        -ValidityPeriod Years `
-        -ValidityPeriodUnits 10
-    Certutil -setreg CA\CRLPeriodUnits 1
-    Certutil -setreg CA\CRLPeriod "Weeks"
-    Certutil -setreg CA\CRLDeltaPeriodUnits 1
-    Certutil -setreg CA\CRLDeltaPeriod "Days"
-    Certutil -setreg CA\CRLOverlapPeriodUnits 12
-    Certutil -setreg CA\CRLOverlapPeriod "Hours"
-    Certutil -setreg CA\ValidityPeriodUnits 5
-    Certutil -setreg CA\ValidityPeriod "Years"
-    Certutil -setreg CA\AuditFilter 127
+function Install-DFS {
+    Add-WindowsFeature FS-DFS-Namespace, FS-DFS-Replication -IncludeManagementTools
 
-    Certutil -setreg CA\CACertPublicationURLs "1:C:\Windows\system32\CertSrv\CertEnroll\%1_%3%4.crt\n2:ldap:///CN=%7,CN=AIA,CN=Public Key Services,CN=Services,%6%11\n2:http://pki.wien.FruUhl.at/CertEnroll/%1_%3%4.crt"
-    Certutil -setreg CA\CRLPublicationURLs "65:C:\Windows\system32\CertSrv\CertEnroll\%3%8%9.crl\n79:ldap:///CN=%7%8,CN=%2,CN=CDP,CN=Public Key Services,CN=Services,%6%10\n6:http://pki.wien.FruUhl.at/CertEnroll/%3%8%9.crl\n65:file://\\WEB.wien.FruUhl.at\CertEnroll\%3%8%9.crl"
+    New-DfsnRoot -Path "\\$($domainName)\$NamespaceName" -Type DomainV2
+    
 
-    Copy-Item -Path 'C:\Windows\System32\CertSrv\CertEnroll\CA.wien.FruUhl.at_FruUhl Root CA.crt' `
-        -Destination '\\WEB.wien.FruUhl.at\C$\CertEnroll'
+    foreach ($folder in $folders) {
+        if (-not (Test-Path "C:\$FolderName\$folder")) {
+            New-DfsnFolder -Path "\\$($domainName)\$NamespaceName" -TargetPath "C:\$FolderName\$folder"
+            $acl = New-Object System.Security.AccessControl.DirectorySecurity
+            $readRule = New-Object System.Security.AccessControl.FileSystemAccessRule("DL_Wien_$($folder)_M", "ReadAndExecute", "Allow")
+            $modifyRule = New-Object System.Security.AccessControl.FileSystemAccessRule("DL_Wien_$($folder)_M", "Modify", "Allow")
+            $acl.AddAccessRule($readRule)
+            $acl.AddAccessRule($modifyRule)
+            Set-Acl -Path "C:\$FolderName\$folder" -AclObject $acl
+        }
+    }
 }
 
 switch ($stage) {
@@ -85,15 +81,15 @@ switch ($stage) {
         Set-DefaultConfiguration
         Set-NetworkConfiguration
         Install-SSH
-        # shutdown /r /t 0
+        shutdown /r /t 0
     }
     2 {
         Join-ADDomain
-        # shutdown /r /t 0
+        shutdown /r /t 0
     }
     3 {
         Set-SConfig -AutoLaunch $false
         Set-WinUserLanguageList -LanguageList "de-DE" -Force
-        Install-ADCS
+        Install-DFS
     }
 }
