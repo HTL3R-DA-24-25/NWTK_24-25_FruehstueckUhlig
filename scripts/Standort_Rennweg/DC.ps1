@@ -67,5 +67,6 @@ switch ($stage) {
     }
     3 { 
         Set-SConfig -AutoLaunch $false
+        Set-WinUserLanguageList -LanguageList "de-DE" -Force
     }
 }
