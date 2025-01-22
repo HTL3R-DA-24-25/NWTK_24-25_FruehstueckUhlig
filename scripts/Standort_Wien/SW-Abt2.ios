@@ -102,8 +102,9 @@ int g2/0
     exit
 int g3/0
     desc to_WinCli2
-    switchport mode private-vlan host
-	switchport private-vlan host-association 100 101
+    !switchport mode private-vlan host
+	!switchport private-vlan host-association 100 101
+    switchport access vlan 100
     no shutdown
     exit
 
