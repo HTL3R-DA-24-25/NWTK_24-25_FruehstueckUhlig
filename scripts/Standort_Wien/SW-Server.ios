@@ -93,6 +93,13 @@ int g1/1
     no shutdown
     exit
 
+int g2/0
+    desc to_Server
+    switchport mode access
+    switchport access vlan 1
+    no shutdown
+    exit
+
 monitor session 1 source remote vlan 200
 monitor session 1 destination interface g3/1
 
