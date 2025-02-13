@@ -113,8 +113,6 @@ spanning-tree mode rapid-pvst
 
 spanning-tree loopguard default
 
-ip default-gateway 192.168.50.254
-
 logging 192.168.0.1
 logging trap 6
 

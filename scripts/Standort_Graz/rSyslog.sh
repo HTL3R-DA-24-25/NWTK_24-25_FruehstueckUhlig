@@ -30,6 +30,31 @@ sudo mv ./01.yaml /etc/netplan/01.yaml
 sudo chmod 600 /etc/netplan/*yaml
 sudo netplan apply
 
+wget https://github.com/prometheus/node_exporter/releases/download/v1.8.2/node_exporter-1.8.2.linux-amd64.tar.gz
+tar xvfz node_exporter-*.*-amd64.tar.gz
+rm node_exporter-*.*-amd64.tar.gz
+sudo cp node_exporter /usr/local/bin/node_exporter
+cd node_exporter-*.*-amd64
+
+sudo cat <<EOF > node_exporter.service
+[Unit]
+Description=Node Exporter
+After=network.target
+
+[Service]
+User=node_exporter
+Group=node_exporter
+Type=simple
+ExecStart=/usr/local/bin/node_exporter
+
+[Install]
+WantedBy=multi-user.target
+EOF
+sudo useradd -rs /bin/false node_exporter
+sudo mv node_exporter.service /etc/systemd/system/node_exporter.service
+sudo systemctl daemon-reload
+sudo systemctl enable --now node_exporter
+
 sudo apt update
 sudo apt install rsyslog
 
