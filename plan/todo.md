@@ -9,8 +9,8 @@ Linus:
 - [ ] (Redundanter ISP (BGP))
 - [ ] Distrubution Lists
 - [ ] pfsense
-- [ ] wireguard nach Standort 1 auf PAW
-- [ ] linux-server - pfsense OpenVPN
+- [ ] wireguard nach pfsense auf PAW
+- [ ] PAW - Standort 1 OpenVPN
 
 Basti:
 
