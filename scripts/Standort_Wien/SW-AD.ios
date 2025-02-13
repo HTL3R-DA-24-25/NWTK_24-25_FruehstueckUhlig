@@ -10,7 +10,7 @@ ip domain-name Lil-BT_FRU_UHL
 crypto key generate rsa usage-ke mod 1024
 no ip routing
 
-default router 192.168.50.254
+ip default-gateway 192.168.50.254
 
 line vty 0 1500
 	logging sync
@@ -93,6 +93,13 @@ int g1/1
     no shutdown
     exit
 
+int g2/0
+    desc to_AD
+    switchport mode access
+    switchport access vlan 10
+    no shutdown
+    exit
+
 monitor session 1 source interface g3/0
 monitor session 1 destination remote vlan 200
 
@@ -107,3 +114,6 @@ spanning-tree loopguard default
 
 logging 192.168.0.1
 logging trap 6
+
+end
+wr

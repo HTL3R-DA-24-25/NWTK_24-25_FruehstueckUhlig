@@ -10,7 +10,7 @@ ip domain-name Lil-BT_FRU_UHL
 crypto key generate rsa usage-ke mod 1024
 no ip routing
 
-default router 192.168.50.254
+ip default-gateway 192.168.50.254
 
 line vty 0 1500
 	logging sync
@@ -104,6 +104,7 @@ int g3/0
     desc to_WinCli2
     !switchport mode private-vlan host
 	!switchport private-vlan host-association 100 101
+    switchport mode access
     switchport access vlan 100
     no shutdown
     exit
@@ -112,6 +113,8 @@ spanning-tree mode rapid-pvst
 
 spanning-tree loopguard default
 
-
 logging 192.168.0.1
 logging trap 6
+
+end
+wr
