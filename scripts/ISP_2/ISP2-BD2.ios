@@ -114,7 +114,7 @@ end
 !Default Route
 conf t
 
-ip route 0.0.0.0 0.0.0.0 g0/3
+ip route 0.0.0.0 0.0.0.0 192.168.53.2
 
 !BGP
 
