@@ -34,6 +34,17 @@ line con 0
 exit
 end
 
+!VRF
+conf t
+
+ip vrf rennweg-graz
+	rd 1:10
+	route-target export 1:10
+	route-target export 1:20
+	route-target import 1:10
+	route-target import 1:20
+end
+
 !Interfaces
 
 conf t
@@ -48,6 +59,7 @@ exit
 
 int g0/1
     desc to_Standort2
+    ip vrf forward rennweg-graz
     ip add 103.152.126.25 255.255.255.248
     mpls ip
     no shut
@@ -88,6 +100,11 @@ router ospf 1
     network 10.0.1.16 0.0.0.1 area 1
 
     network 10.0.1.103 0.0.0.0 area 1
+exit
+
+router ospf 10 vrf rennweg-graz
+    redistribute connected subnets
+    network 103.152.126.24 0.0.0.7 area 0
 end
 
 !BGP
@@ -105,6 +122,13 @@ router BGP 1
 
     neighbor 10.0.1.104 remote-as 1
 	neighbor 10.0.1.104 update-source lo1
+
+    address-family vpnv4
+		nei 10.0.1.104 activate
+		nei 10.0.1.104 send-community extended
+		
+	address-family ipv4 vrf rennweg-graz
+        redistribute ospf 10
 end
 
 !Write
