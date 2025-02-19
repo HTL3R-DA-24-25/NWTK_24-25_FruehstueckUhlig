@@ -104,7 +104,7 @@ exit
 
 router ospf 10 vrf rennweg-graz
     redistribute connected subnets
-    network 103.152.126.24 0.0.0.7 area 0
+    network 103.152.126.24 0.0.0.7 area 1
 end
 
 !BGP
