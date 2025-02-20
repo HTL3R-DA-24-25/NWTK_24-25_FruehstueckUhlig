@@ -72,13 +72,13 @@ int g0/2
     no shut
 exit
 
-int g0/0
+int g0/3
     desc vrf_to_Standort3
     ip vrf forward rennweg-graz
     ip add 10.10.10.9 255.255.255.248
     mpls ip
     no shut
-exit
+end
 
 int lo1
     desc loopback_for_BGP
