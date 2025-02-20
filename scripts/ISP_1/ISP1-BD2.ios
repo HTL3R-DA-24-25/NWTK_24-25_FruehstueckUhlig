@@ -99,12 +99,15 @@ router BGP 1
     
     neighbor 10.0.1.101 remote-as 1
 	neighbor 10.0.1.101 update-source lo1
+    neighbor 10.0.1.101 next-hop-self
 
     neighbor 10.0.1.103 remote-as 1
 	neighbor 10.0.1.103 update-source lo1
+    neighbor 10.0.1.103 next-hop-self
 
     neighbor 10.0.1.104 remote-as 1
 	neighbor 10.0.1.104 update-source lo1
+    neighbor 10.0.1.103 next-hop-self
 
 	neighbor 103.152.126.98 remote-as 2
 	neighbor 103.152.126.98 update-source g0/2
