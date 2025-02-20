@@ -12,6 +12,27 @@ no ip routing
 
 ip default-gateway 192.168.50.254
 
+aaa new-model
+
+aaa group server radius DC
+ server 192.168.10.1 auth-port 1812 acct-port 1813
+
+aaa authentication login userAuthentication local group DC
+aaa authorization exec userAuthorization local group DC if-authenticated
+aaa authorization network userAuthorization local group DC
+aaa accounting exec default start-stop group DC
+aaa accounting system default start-stop group DC
+
+aaa authentication login default group DC local
+
+aaa session-id common
+radius server DC
+  address ipv4 192.168.10.1 auth-port 1812 acct-port 1813
+  key ganzgeheim123!
+privilege exec level 1 show config
+ip radius source-interface vlan 50
+ 
+
 line vty 0 1500
 	logging sync
 	login local
