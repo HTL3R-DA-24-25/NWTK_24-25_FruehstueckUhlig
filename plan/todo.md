@@ -1,4 +1,5 @@
 Linus:
+
 - [ ] PAW
 - [ ] RAS-VPN
 - [ ] PF-FG VPN
@@ -7,6 +8,7 @@ Linus:
 - [ ] Webfilter
 - [ ] static NAT (pf oder webserver?)
 - [ ] (Redundanter ISP (BGP))
+- [ ] BGP Manipulation
 - [ ] Distrubution Lists
 - [ ] pfsense
 - [ ] wireguard nach pfsense auf PAW
