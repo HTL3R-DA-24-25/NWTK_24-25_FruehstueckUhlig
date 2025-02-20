@@ -135,7 +135,7 @@ router BGP 1
 		nei 10.0.1.103 send-community extended
 		
 	address-family ipv4 vrf rennweg-graz
-        redistribute ospf 10  
+        redistribute ospf 10 match internal external 1 external 2
 end
 
 !Write
