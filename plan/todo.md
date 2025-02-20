@@ -1,16 +1,15 @@
 Linus:
 
 - [ ] PAW
-- [ ] RAS-VPN
-- [ ] PF-FG VPN
+- [x] PF-FG VPN
 - [ ] captive Portal (FG)
-- [ ] Bogons
+- [x] Bogons
 - [ ] Webfilter
 - [ ] static NAT (pf oder webserver?)
 - [ ] (Redundanter ISP (BGP))
 - [ ] BGP Manipulation
 - [ ] Distrubution Lists
-- [ ] pfsense
+- [x] pfsense
 - [ ] wireguard nach pfsense auf PAW
 - [ ] PAW - Standort 1 OpenVPN
 
