@@ -80,7 +80,6 @@ int lo2
 exit
 
 !Tunnel
-conf t
 int tun1
     desc multipoint_tunnel
     ip add 101.100.12.1 255.255.255.0
@@ -144,6 +143,8 @@ router ospf 1
 exit
 
 router ospf 2
+    router-id 10.0.2.111
+    
     network 101.100.12.0 0.0.0.255 area 2
     network 10.0.2.101 0.0.0.0 area 2
 end
