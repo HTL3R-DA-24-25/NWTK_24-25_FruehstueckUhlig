@@ -84,7 +84,7 @@ int tun1
     desc multipoint_tunnel
     ip add 101.100.12.1 255.255.255.0
     tunnel mode gre multipoint
-    tunnel source lo1
+    tunnel source lo2
     no ip redirects
     ip mtu 1440
     ip nhrp authentication cisco123
@@ -144,7 +144,7 @@ exit
 
 router ospf 2
     router-id 10.0.2.111
-    
+
     network 101.100.12.0 0.0.0.255 area 2
     network 10.0.2.101 0.0.0.0 area 2
 end

@@ -91,7 +91,7 @@ int tun1
     ip nhrp map multicast 10.0.2.111
     ip nhrp network-id 1
     ip nhrp nhs 101.100.12.1
-    tunnel source lo1
+    tunnel source lo2
     tunnel mode gre multipoint
     no shut
 exit
