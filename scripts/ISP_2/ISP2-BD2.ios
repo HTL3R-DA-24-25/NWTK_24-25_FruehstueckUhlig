@@ -86,13 +86,47 @@ int lo2
 exit
 
 !Tunnel
+conf t
 int tun1
-    desc to_BD-1
+    desc multipoint_tunnel
     ip add 101.100.12.2 255.255.255.0
-    tunnel source 10.0.2.112
-    tunnel destination 10.0.2.111
+    no ip redirects
+    ip mtu 1440
+    ip nhrp authentication cisco123
+    ip nhrp map multicast dynamic
+    ip nhrp map 101.100.12.1 10.0.2.111
+    ip nhrp map multicast 10.0.2.111
+    ip nhrp network-id 1
+    ip nhrp nhs 101.100.12.1
+    tunnel source lo1
+    tunnel mode gre multipoint
+    no shut
+exit
+
+!VPN
+crypto isakmp policy 10
+    encryption aes 256
+    lifetime 86400
+    hash sha512
+    group 5
+    authentication pre-share
+exit
+
+crypto isakmp key cisco123! address 0.0.0.0
+
+crypto ipsec transform-set 5CN esp-sha512-hmac esp-aes 256
+    mode transport
+exit
+
+crypto ipsec profile IPSEC_PROF
+    set transform-set 5CN
+exit
+
+int tun1
+    ip nhrp shortcut
+    tunn protection ipsec profile IPSEC_PROF
+    ip ospf network point-to-multipoint
     ip ospf authentication key-chain OSPF
-    tunnel mode gre ip
 end
 
 !Keychains
