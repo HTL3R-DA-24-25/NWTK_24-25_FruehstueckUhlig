@@ -5,6 +5,7 @@ Linus:
 - [ ] captive Portal (FG)
 - [x] Bogons
 - [ ] Webfilter
+- [x] DMVPN (verschlüsselt)
 - [ ] static NAT (pf oder webserver?)
 - [ ] (Redundanter ISP (BGP))
 - [ ] BGP Manipulation
