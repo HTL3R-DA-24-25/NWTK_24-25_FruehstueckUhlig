@@ -107,6 +107,11 @@ key chain OSPF
         key-string OSPFSECRETKEY
 end
 
+!Distribution List
+
+ip prefix-list BLOCK_NET seq 10 deny 192.168.53.0/24
+ip prefix-list BLOCK_NET seq 20 permit 0.0.0.0/0 le 32
+
 !OSPF
 
 conf t
@@ -122,6 +127,7 @@ exit
 
 router ospf 10 vrf rennweg-graz
     redistribute connected subnets
+    distribute-list prefix BLOCK_NET in
     network 10.10.10.0 0.0.0.7 area 1
 end
 

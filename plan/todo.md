@@ -4,12 +4,12 @@ Linus:
 - [x] PF-FG VPN
 - [ ] captive Portal (FG)
 - [x] Bogons
-- [ ] Webfilter
+- [x] Webfilter
 - [x] DMVPN (verschlüsselt)
-- [ ] static NAT (pf oder webserver?)
-- [ ] (Redundanter ISP (BGP))
+- [x] static NAT (pf oder webserver?)
+- [x] (Redundanter ISP (BGP))
 - [ ] BGP Manipulation
-- [ ] Distrubution Lists
+- [x] Distrubution Lists
 - [x] pfsense
 - [ ] wireguard nach pfsense auf PAW
 - [ ] PAW - Standort 1 OpenVPN
