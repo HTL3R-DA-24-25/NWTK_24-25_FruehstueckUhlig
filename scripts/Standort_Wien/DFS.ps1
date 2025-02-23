@@ -7,8 +7,6 @@ $localAdministratorUser = "Administrator"
 $ntpServer = "time.FruUhl.at"
 $FolderName = "DFS"
 
-$NamespaceName = "Shares"
-
 $distinguishedName = ""
 foreach ($part in $domainName.Split(".")) {
     $distinguishedName += "DC=$part,"
@@ -77,7 +75,7 @@ function Install-DFS {
             Name        = "RoamingProfiles"
             ShareName   = "RoamingProfiles$"  # Hidden share (optional)
             Description = "Folder for Roaming User Profiles"
-            Permissions = "Read"  # Set permissions for the share
+            Permissions = "AdminFull"  # Set permissions for the share
         },
         @{
             Name        = "Wallpapers"
@@ -93,7 +91,7 @@ function Install-DFS {
         }
     )
 
-    $basePath = "C:\DFSRoot\Shares"
+    $basePath = "C:\DFSRoot"
     $server = "$computerName.$domainName"
 
     # Create each shared folder and add it to the DFS namespace
@@ -120,8 +118,9 @@ function Install-DFS {
         elseif ($permissions -eq "Write") {
             Grant-SmbShareAccess -Name $shareName -AccountName "Everyone" -AccessRight Change -Force
         }
-        elseif ($permissions -eq "Full") {
-            Grant-SmbShareAccess -Name $shareName -AccountName "Everyone" -AccessRight Full -Force
+        elseif ($permissions -eq "AdminFull") {
+            Grant-SmbShareAccess -Name $shareName -AccountName "Everyone" -AccessRight Change -Force
+            Grant-SmbShareAccess -Name $shareName -AccountName "WIEN\Domain Admins" -AccessRight Full -Force
         }
 
         # Add the folder to the DFS namespace
@@ -132,9 +131,11 @@ function Install-DFS {
     }
 
     Write-Host "DFS namespace setup complete!"
-        
-        
-    
+}
+
+function Get-Backgrounds {
+    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/HTL3R-DA-24-25/NWTK_24-25_FruehstueckUhlig/refs/heads/main/scripts/Standort_Wien/Background.png" -OutFile "C:\DFSRoot\Wallpapers\Background.png"
+    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/HTL3R-DA-24-25/NWTK_24-25_FruehstueckUhlig/refs/heads/main/scripts/Standort_Wien/LoginScreen.png" -OutFile "C:\DFSRoot\Wallpapers\LoginScreen.png"
 }
 
 switch ($stage) {
@@ -152,5 +153,6 @@ switch ($stage) {
         Set-SConfig -AutoLaunch $false
         Set-WinUserLanguageList -LanguageList "de-DE" -Force
         Install-DFS
+        Get-Backgrounds
     }
 }

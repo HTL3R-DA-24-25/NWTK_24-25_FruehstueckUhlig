@@ -1,4 +1,4 @@
-$stage = 3
+$stage = 5
 $password = "ganzgeheim123!"
 $domainName = "wien.FruUhl.at"
 $computerName = "DC1"
@@ -29,10 +29,11 @@ $loginScreenGpoName = "Login Screen Policy"
 $driveMountGpoName = "Drive Mount Policy"
 $firewallGpoName = "Firewall Policy"
 
-$wallpaperPath = "\\5CN\Shares\wallpapers\Background.png"
+$wallpaperPath = "\\$($domainName)\Shares\wallpapers\Background.png"
 $homepageUrl = "https://www.htl.rennweg.at" 
-$sharePath = "\\5CN\Shares\share"
-$loginScreenPath = "\\5CN\Shares\wallpapers\LoginScreen.png"
+$sharePath = "\\$($domainName)\Shares\Shared"
+$loginScreenPath = "\\$($domainName)\Shares\wallpapers\LoginScreen.png"
+$roamingProfilePath = "\\$($domainName)\Shares\RoamingProfiles"
 
 
 
@@ -289,23 +290,36 @@ function Add-GPOs {
 
 
     # Linking GPOs to OUs
-    New-GPLink -Name $minPasswordLengthGpoName -Target "OU=Accounts,$distinguishedName" -LinkEnabled Yes
-    New-GPLink -Name $desktopWallpaperGpoName -Target "OU=Accounts,$distinguishedName" -LinkEnabled Yes
-    New-GPLink -Name $defaultBrowserHomepageGpoName -Target "OU=Accounts,$distinguishedName" -LinkEnabled Yes
-    New-GPLink -Name $driveMountGpoName -Target "OU=Accounts,$distinguishedName" -LinkEnabled Yes
+    New-GPLink -Name $minPasswordLengthGpoName -Target "OU=All,$distinguishedName" -LinkEnabled Yes
+    New-GPLink -Name $desktopWallpaperGpoName -Target "OU=All,$distinguishedName" -LinkEnabled Yes
+    New-GPLink -Name $defaultBrowserHomepageGpoName -Target "OU=All,$distinguishedName" -LinkEnabled Yes
+    New-GPLink -Name $driveMountGpoName -Target "OU=All,$distinguishedName" -LinkEnabled Yes
 
     New-GPLink -Name $hidingLastUserGpoName -Target "$distinguishedName" -LinkEnabled Yes
     New-GPLink -Name $loginScreenGpoName -Target "$distinguishedName" -LinkEnabled Yes
     New-GPLink -Name $firewallGpoName -Target "$distinguishedName" -LinkEnabled Yes
-
 }
+
+function Set-RoamingProfiles {
+    $acl = Get-Acl $roamingProfilePath
+    $rule = New-Object System.Security.AccessControl.FileSystemAccessRule("Domain Users", "Modify", "ContainerInherit,ObjectInherit", "None", "Allow")
+    $acl.SetAccessRule($rule)
+    Set-Acl -Path $roamingProfilePath -AclObject $acl
+    foreach ($user in $users) {
+        $userPath = Join-Path -Path $roamingProfilePath -ChildPath $user.UserName
+        if (-not (Test-Path -Path $userPath)) {
+            New-Item -Path $userPath -ItemType Directory
+        }
+        Set-ADUser -Identity $user.UserName -ProfilePath $userPath
+    }
+} 
 
 switch ($stage) {
     1 { 
         Set-DefaultConfiguration
         Set-NetworkConfiguration
         Install-SSH
-        # shutdown /r /t 0
+        shutdown /r /t 0
     }
     2 {
         Install-ActiveDirectory
@@ -318,5 +332,6 @@ switch ($stage) {
         Add-GlobalGroups
         Add-Users
         Set-Sites
+        Add-GPOs
     }
 }
