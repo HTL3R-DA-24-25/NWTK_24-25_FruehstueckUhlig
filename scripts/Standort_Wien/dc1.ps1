@@ -21,20 +21,34 @@ foreach ($part in $domainName.Split(".")) {
 }
 $distinguishedName = $distinguishedName.TrimEnd(",")
 
+$minPasswordLengthGpoName = "Minimum Password Length Policy"
+$desktopWallpaperGpoName = "Desktop Wallpaper Policy"
+$defaultBrowserHomepageGpoName = "Default Browser Homepage Policy"
+$hidingLastUserGpoName = "Hiding Last User Policy"
+$loginScreenGpoName = "Login Screen Policy"
+$driveMountGpoName = "Drive Mount Policy"
+$firewallGpoName = "Firewall Policy"
+
+$wallpaperPath = "\\5CN\Shares\wallpapers\Background.png"
+$homepageUrl = "https://www.htl.rennweg.at" 
+$sharePath = "\\5CN\Shares\share"
+$loginScreenPath = "\\5CN\Shares\wallpapers\LoginScreen.png"
+
+
 
 $ous = @(
     @{
         Name = "Sales"
-        Path = "$distinguishedName"
+        Path = "OU=All,$distinguishedName"
     }, @{
         Name = "Marketing"
-        Path = "$distinguishedName"
+        Path = "OU=All,$distinguishedName"
     }, @{
         Name = "Operations"
-        Path = "$distinguishedName"
+        Path = "OU=All,$distinguishedName"
     }, @{
         Name = "Management"
-        Path = "$distinguishedName"
+        Path = "OU=All,$distinguishedName"
     }
 )
 
@@ -61,22 +75,22 @@ $users = @(
         Name         = "Linus Frühstück"
         UserName     = "lFreuhstueck"
         GlobalGroups = @("G_Sales")
-        Path         = "OU=Users,OU=Sales,$distinguishedName"
+        Path         = "OU=Users,OU=Sales,OU=All,$distinguishedName"
     }, @{
         Name         = "Bastian Uhlig"
         UserName     = "bUhlig"
         GlobalGroups = @("G_Marketing")
-        Path         = "OU=Users,OU=Marketing,$distinguishedName"
+        Path         = "OU=Users,OU=Marketing,OU=All,$distinguishedName"
     }, @{
         Name         = "Alfred Bauer"
         UserName     = "aBauer"
         GlobalGroups = @("G_Operations")
-        Path         = "OU=Users,OU=Operations,$distinguishedName"
+        Path         = "OU=Users,OU=Operations,OU=All,$distinguishedName"
     }, @{
         Name         = "Christine Maier"
         UserName     = "cMaier"
         GlobalGroups = @("G_Management")
-        Path         = "OU=Users,OU=Management,$distinguishedName"
+        Path         = "OU=Users,OU=Management,OU=All,$distinguishedName"
     }
 )
 
@@ -133,6 +147,7 @@ function Install-SSH {
 }
 
 function Set-OUs {
+    New-ADOrganizationalUnit -Name "All" -Path $distinguishedName
     foreach ($ou in $ous) {
         if (-not (Get-ADOrganizationalUnit -Filter "DistinguishedName -eq 'OU=$($ou.Name),$($ou.Path)'" -ErrorAction SilentlyContinue)) {
             New-ADOrganizationalUnit -Name $ou.Name -Path $ou.Path
@@ -223,6 +238,66 @@ function Add-DomainLocalGroups {
             Write-Host "Domain-Local Gruppe existiert bereits: DL_$($group)_R"
         }
     }
+}
+
+function Add-GPOs {
+
+    # Minimum Password Length
+    New-GPO -Name $minPasswordLengthGpoName | Out-Null
+    Set-GPRegistryValue -Name $minPasswordLengthGpoName -Key "HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\Network" -ValueName "MinPwdLen" -Type DWORD -Value 8
+
+    # Desktop Wallpaper
+    New-GPO -Name $desktopWallpaperGpoName | Out-Null
+    Set-GPRegistryValue -Name $desktopWallpaperGpoName -Key "HKCU\Control Panel\Desktop" -ValueName "WallPaper" -Type String -Value $wallpaperPath
+    Set-GPRegistryValue -Name $desktopWallpaperGpoName -Key "HKCU\Control Panel\Desktop" -ValueName "TileWallpaper" -Type String -Value "0"
+    Set-GPRegistryValue -Name $desktopWallpaperGpoName -Key "HKCU\Control Panel\Desktop" -ValueName "WallpaperStyle" -Type String -Value "10"
+    Set-GPRegistryValue -Name $desktopWallpaperGpoName -Key "HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\System" -ValueName "NoChangingWallPaper" -Type DWord -Value 1
+
+    # Default Browser Homepage . halt nur in IE weil Edge fuck you
+    New-GPO -Name $defaultBrowserHomepageGpoName | Out-Null
+    Set-GPRegistryValue -Name $defaultBrowserHomepageGpoName -Key "HKCU\Software\Microsoft\Internet Explorer\Main" -ValueName "Start Page" -Type String -Value $homepageUrl
+    Set-GPRegistryValue -Name $defaultBrowserHomepageGpoName -Key "HKCU\Software\Microsoft\Internet Explorer\Main" -ValueName "Default_Page_URL" -Type String -Value $homepageUrl
+
+    # Hiding Last User
+    New-GPO -Name $hidingLastUserGpoName | Out-Null
+    Set-GPRegistryValue -Name $hidingLastUserGpoName -Key "HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System" -ValueName "dontdisplaylastusername" -Type DWORD -Value 1
+    $gpo = Get-GPO -Name $hidingLastUserGpoName
+    $gpo | Set-GPPermission -PermissionLevel GpoApply -TargetName "Domain Computers" -TargetType Group 
+
+    # Login Screen
+    New-GPO -Name $loginScreenGpoName | Out-Null
+    Set-GPRegistryValue -Name $loginScreenGpoName -Key "HKLM\SOFTWARE\Policies\Microsoft\Windows\Personalization" -ValueName "LockScreenImage" -Type String -Value "$loginScreenPath"
+    $gpo = Get-GPO -Name $loginScreenGpoName
+    $gpo | Set-GPPermission -PermissionLevel GpoApply -TargetName "Domain Computers" -TargetType Group 
+
+    # Drive Mount
+    New-GPO -Name $driveMountGpoName | Out-Null
+    $keyPath = "HKCU\Network\F:"
+    Set-GPRegistryValue -Name $driveMountGpoName -Key $keyPath -ValueName "RemotePath" -Type String -Value "$sharePath"
+    Set-GPRegistryValue -Name $driveMountGpoName -Key $keyPath -ValueName "DeferFlags" -Type DWord -Value 1
+    Set-GPRegistryValue -Name $driveMountGpoName -Key $keyPath -ValueName "UserName" -Type String -Value ""
+    Set-GPRegistryValue -Name $driveMountGpoName -Key $keyPath -ValueName "ProviderName" -Type String -Value "Share"
+
+    # Firewall
+    New-GPO -Name $firewallGpoName | Out-Null
+    Set-GPRegistryValue -Name $firewallGpoName -Key "HKLM\SOFTWARE\Policies\Microsoft\WindowsFirewall\DomainProfile" -ValueName "EnableFirewall" -Type DWord -Value 1
+    Set-GPRegistryValue -Name $firewallGpoName -Key "HKLM\SOFTWARE\Policies\Microsoft\WindowsFirewall\PrivateProfile" -ValueName "EnableFirewall" -Type DWord -Value 1
+    Set-GPRegistryValue -Name $firewallGpoName -Key "HKLM\SOFTWARE\Policies\Microsoft\WindowsFirewall\PublicProfile" -ValueName "EnableFirewall" -Type DWord -Value 1
+    $gpo = Get-GPO -Name $firewallGpoName
+    $gpo | Set-GPPermission -PermissionLevel GpoApply -TargetName "Domain Computers" -TargetType Group 
+
+
+
+    # Linking GPOs to OUs
+    New-GPLink -Name $minPasswordLengthGpoName -Target "OU=Accounts,$distinguishedName" -LinkEnabled Yes
+    New-GPLink -Name $desktopWallpaperGpoName -Target "OU=Accounts,$distinguishedName" -LinkEnabled Yes
+    New-GPLink -Name $defaultBrowserHomepageGpoName -Target "OU=Accounts,$distinguishedName" -LinkEnabled Yes
+    New-GPLink -Name $driveMountGpoName -Target "OU=Accounts,$distinguishedName" -LinkEnabled Yes
+
+    New-GPLink -Name $hidingLastUserGpoName -Target "$distinguishedName" -LinkEnabled Yes
+    New-GPLink -Name $loginScreenGpoName -Target "$distinguishedName" -LinkEnabled Yes
+    New-GPLink -Name $firewallGpoName -Target "$distinguishedName" -LinkEnabled Yes
+
 }
 
 switch ($stage) {

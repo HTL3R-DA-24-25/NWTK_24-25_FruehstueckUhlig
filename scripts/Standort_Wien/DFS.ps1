@@ -1,12 +1,13 @@
-$stage = 2
+$stage = 3
 $password = "ganzgeheim123!"
 $domainName = "wien.FruUhl.at"
 $computerName = "DFS"
 $domainAdministratorUser = "Administrator"
 $localAdministratorUser = "Administrator"
 $ntpServer = "time.FruUhl.at"
-$NamespaceName = "DFSFruUhl"
 $FolderName = "DFS"
+
+$NamespaceName = "Shares"
 
 $distinguishedName = ""
 foreach ($part in $domainName.Split(".")) {
@@ -60,20 +61,80 @@ function Install-SSH {
 function Install-DFS {
     Add-WindowsFeature FS-DFS-Namespace, FS-DFS-Replication -IncludeManagementTools
 
-    New-DfsnRoot -Path "\\$($domainName)\$NamespaceName" -Type DomainV2
-    
-
-    foreach ($folder in $folders) {
-        if (-not (Test-Path "C:\$FolderName\$folder")) {
-            New-DfsnFolder -Path "\\$($domainName)\$NamespaceName" -TargetPath "C:\$FolderName\$folder"
-            $acl = New-Object System.Security.AccessControl.DirectorySecurity
-            $readRule = New-Object System.Security.AccessControl.FileSystemAccessRule("DL_Wien_$($folder)_M", "ReadAndExecute", "Allow")
-            $modifyRule = New-Object System.Security.AccessControl.FileSystemAccessRule("DL_Wien_$($folder)_M", "Modify", "Allow")
-            $acl.AddAccessRule($readRule)
-            $acl.AddAccessRule($modifyRule)
-            Set-Acl -Path "C:\$FolderName\$folder" -AclObject $acl
-        }
+    if ( -not (Test-Path -Path "C:\DFSRoot") ) {
+        New-Item -Path "C:\DFSRoot" -ItemType Directory
     }
+    if ( -not (Test-Path -Path "C:\DFSRoot\Shares") ) {
+        New-Item -Path "C:\DFSRoot\Shares" -ItemType Directory
+    }
+    New-SmbShare -Name "Shares" -Path "C:\DFSRoot\Shares" -FullAccess "Everyone"
+    New-DfsnRoot -Path "\\$($domainName)\Shares" -TargetPath "\\$($computerName).$($domainName)\Shares" -Type DomainV2 -EnableRootScalability $true
+
+
+    # Define the folders and their properties
+    $folders = @(
+        @{
+            Name        = "RoamingProfiles"
+            ShareName   = "RoamingProfiles$"  # Hidden share (optional)
+            Description = "Folder for Roaming User Profiles"
+            Permissions = "Read"  # Set permissions for the share
+        },
+        @{
+            Name        = "Wallpapers"
+            ShareName   = "Wallpapers"
+            Description = "Read-only folder for Wallpapers"
+            Permissions = "Read"  # Set permissions for the share
+        },
+        @{
+            Name        = "Shared"
+            ShareName   = "Shared"
+            Description = "Shared folder with write access for anyone"
+            Permissions = "Write"  # Set permissions for the share
+        }
+    )
+
+    $basePath = "C:\DFSRoot\Shares"
+    $server = "$computerName.$domainName"
+
+    # Create each shared folder and add it to the DFS namespace
+    foreach ($folder in $folders) {
+        $folderName = $folder.Name
+        $shareName = $folder.ShareName
+        $folderPath = Join-Path -Path $basePath -ChildPath $folderName
+        $sharePath = "\\$server\$shareName"
+        $description = $folder.Description
+        $permissions = $folder.Permissions
+
+        # Create the folder if it doesn't exist
+        if (-not (Test-Path -Path $folderPath)) {
+            New-Item -Path $folderPath -ItemType Directory
+        }
+
+        # Share the folder
+        New-SmbShare -Name $shareName -Path $folderPath -Description $description
+
+        # Set share permissions
+        if ($permissions -eq "Read") {
+            Grant-SmbShareAccess -Name $shareName -AccountName "Everyone" -AccessRight Read -Force
+        }
+        elseif ($permissions -eq "Write") {
+            Grant-SmbShareAccess -Name $shareName -AccountName "Everyone" -AccessRight Change -Force
+        }
+        elseif ($permissions -eq "Full") {
+            Grant-SmbShareAccess -Name $shareName -AccountName "Everyone" -AccessRight Full -Force
+        }
+
+        # Add the folder to the DFS namespace
+        $dfsFolderPath = "\\$($domainName)\Shares\$folderName"
+        New-DfsnFolder -Path $dfsFolderPath -TargetPath $sharePath -Description $description
+
+        Write-Host "Created and shared folder: $dfsFolderPath -> $sharePath"
+    }
+
+    Write-Host "DFS namespace setup complete!"
+        
+        
+    
 }
 
 switch ($stage) {
@@ -81,11 +142,11 @@ switch ($stage) {
         Set-DefaultConfiguration
         Set-NetworkConfiguration
         Install-SSH
-        shutdown /r /t 0
+        # shutdown /r /t 0
     }
     2 {
         Join-ADDomain
-        shutdown /r /t 0
+        # shutdown /r /t 0
     }
     3 {
         Set-SConfig -AutoLaunch $false
