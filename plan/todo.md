@@ -1,6 +1,6 @@
 Linus:
 
-- [ ] PAW
+- [x] PAW
 - [x] PF-FG VPN
 - [ ] captive Portal (FG)
 - [x] Bogons
@@ -11,7 +11,7 @@ Linus:
 - [ ] BGP Manipulation
 - [x] Distrubution Lists
 - [x] pfsense
-- [ ] wireguard nach pfsense auf PAW
+- [x] wireguard nach pfsense auf PAW
 - [ ] PAW - Standort 1 OpenVPN
 
 Basti:
