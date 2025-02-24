@@ -28,6 +28,8 @@ $hidingLastUserGpoName = "Hiding Last User Policy"
 $loginScreenGpoName = "Login Screen Policy"
 $driveMountGpoName = "Drive Mount Policy"
 $firewallGpoName = "Firewall Policy"
+$vbsGpoName = "Virtualisation Based Security Policy"
+$credentialGuardGpoName = "Credential Guard Policy"
 
 $wallpaperPath = "\\$($domainName)\Shares\wallpapers\Background.png"
 $homepageUrl = "https://www.htl.rennweg.at" 
@@ -85,7 +87,7 @@ $users = @(
     }, @{
         Name         = "Alfred Bauer"
         UserName     = "aBauer"
-        GlobalGroups = @("G_Operations")
+        GlobalGroups = @("G_Operations", "Protected Users")
         Path         = "OU=Users,OU=Operations,OU=All,$distinguishedName"
     }, @{
         Name         = "Christine Maier"
@@ -287,6 +289,14 @@ function Add-GPOs {
     $gpo = Get-GPO -Name $firewallGpoName
     $gpo | Set-GPPermission -PermissionLevel GpoApply -TargetName "Domain Computers" -TargetType Group 
 
+    # Enable VBS
+    New-GPO -Name "Device Hardening" | Out-Null
+    Set-GPRegistryValue -Name $vbsGpoName -Key "HKLM\SYSTEM\CurrentControlSet\Control\DeviceGuard" -ValueName "EnableVirtualizationBasedSecurity" -Type DWord -Value 1
+
+    # Enable Credential Guard
+    New-GPO -Name $credentialGuardGpoName -Key "HKLM\SYSTEM\CurrentControlSet\Control\Lsa" -Name "LsaCfgFlags" -Type DWord -Value 2
+
+    # Check if running: (Get-CimInstance -ClassName Win32_DeviceGuard -Namespace root\Microsoft\Windows\DeviceGuard).SecurityServicesRunning
 
 
     # Linking GPOs to OUs
@@ -298,6 +308,9 @@ function Add-GPOs {
     New-GPLink -Name $hidingLastUserGpoName -Target "$distinguishedName" -LinkEnabled Yes
     New-GPLink -Name $loginScreenGpoName -Target "$distinguishedName" -LinkEnabled Yes
     New-GPLink -Name $firewallGpoName -Target "$distinguishedName" -LinkEnabled Yes
+
+    New-GPLink -Name $vbsGpoName -Target "CN=Client1,CN=Computers,$distinguishedName" -LinkEnabled Yes
+    New-GPLink -Name $credentialGuardGpoName -Target "CN=Client1,CN=Computers,$distinguishedName" -LinkEnabled Yes
 }
 
 function Set-RoamingProfiles {
@@ -305,6 +318,7 @@ function Set-RoamingProfiles {
     $rule = New-Object System.Security.AccessControl.FileSystemAccessRule("Domain Users", "Modify", "ContainerInherit,ObjectInherit", "None", "Allow")
     $acl.SetAccessRule($rule)
     Set-Acl -Path $roamingProfilePath -AclObject $acl
+    
     foreach ($user in $users) {
         $userPath = Join-Path -Path $roamingProfilePath -ChildPath $user.UserName
         if (-not (Test-Path -Path $userPath)) {

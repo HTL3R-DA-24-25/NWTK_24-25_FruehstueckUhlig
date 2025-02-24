@@ -17,12 +17,12 @@ Linus:
 Basti:
 
 - [ ] Switching
-- [ ] DFS
-- [ ] Roaming Profiles
+- [x] DFS
+- [x] Roaming Profiles
 - [ ] Jump Server
-- [ ] Gehärterter DC
+- [x] Gehärterter DC
   - Protected Users
-- [ ] GPOs
-- [ ] Radius (NPS auf DC1)
-- [ ] linux-fw
+- [x] GPOs
+- [x] Radius (NPS auf DC1)
+- [x] linux-fw
 - [ ] linux Domain Join
