@@ -1,37 +1,26 @@
 $stage = 3
 $password = "ganzgeheim123!"
-$computerName = "DC"
+$computerName = "Jumphost"
 $domainName = "wien.FruUhl.at"
 $domainAdministratorUser = "Administrator"
 $localAdministratorUser = "Administrator"
-$readOnlyDomainController = $true
 
 $networkAdapter = @{
     Name           = "E*"
     NewName        = "Server"
-    IPAddress      = "172.16.100.1"
+    IPAddress      = "172.16.100.100"
     PrefixLength   = "24"
     DefaultGateway = "172.16.100.254"
-    DNS            = ("192.168.10.1", "192.168.10.2")
+    DNS            = ("192.168.100.1", "192.168.10.1")
 }
 
 $passwordSecure = $(ConvertTo-SecureString $password -AsPlainText -Force)
 $credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ("$domainAdministratorUser@$domainName", $passwordSecure)
 
-function Install-ActiveDirectory {
-    Add-WindowsFeature AD-Domain-Services -IncludeManagementTools
-    Install-ADDSDomainController `
-        -Credential $credential `
-        -InstallDns:$true `
-        -DomainName $domainName `
-        -SafeModeAdministratorPassword $passwordSecure `
-        -ReadOnlyReplica:$readOnlyDomainController `
-        -NoGlobalCatalog: (-not $readOnlyDomainController) `
-        -NoRebootOnCompletion:$true `
-        -SiteName "Rennweg" `
-        -Force:$true `
-        -AllowPasswordReplicationAccountName @("Administrator")
+function Join-ADDomain {
+    Add-Computer -DomainName $domainName -Credential $credential -Restart:$false -Force 
 }
+
 function Set-DefaultConfiguration {
     Set-WinUserLanguageList -LanguageList "de-DE" -Force
     Set-LocalUser -Name $localAdministratorUser -Password $passwordSecure
@@ -54,16 +43,6 @@ function Install-SSH {
     Set-Service -Name sshd -StartupType 'Automatic'
 }
 
-function Set-JumpServer {
-    New-NetFirewallRule -DisplayName "WinRM" `
-        -Direction Inbound `
-        -LocalPort 5985 `
-        -Protocol TCP `
-        -Action Allow `
-        -RemoteAddress "192.168.100.100"
-    Enable-PSRemoting
-}
-
 switch ($stage) {
     1 { 
         Set-DefaultConfiguration
@@ -72,12 +51,11 @@ switch ($stage) {
         shutdown /r /t 0
     }
     2 { 
-        Install-ActiveDirectory
+        Join-ADDomain
         shutdown /r /t 0
     }
     3 { 
         Set-SConfig -AutoLaunch $false
         Set-WinUserLanguageList -LanguageList "de-DE" -Force
-        Set-JumpServer
     }
 }

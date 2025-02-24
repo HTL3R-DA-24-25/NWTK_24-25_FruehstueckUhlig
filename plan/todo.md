@@ -19,10 +19,10 @@ Basti:
 - [ ] Switching
 - [x] DFS
 - [x] Roaming Profiles
-- [ ] Jump Server
+- [x] Jump Server
 - [x] Gehärterter DC
   - Protected Users
 - [x] GPOs
 - [x] Radius (NPS auf DC1)
 - [x] linux-fw
-- [ ] linux Domain Join
+- [x] linux Domain Join
