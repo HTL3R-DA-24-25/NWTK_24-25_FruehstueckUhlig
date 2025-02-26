@@ -15,8 +15,8 @@ ip default-gateway 192.168.50.254
 aaa new-model
 
 aaa group server radius DC
- server 192.168.10.1 auth-port 1812 acct-port 1813
-
+    server name DC1
+    
 aaa authentication login userAuthentication local group DC
 aaa authorization exec userAuthorization local group DC if-authenticated
 aaa authorization network userAuthorization local group DC

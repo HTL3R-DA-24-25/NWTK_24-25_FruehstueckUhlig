@@ -2,7 +2,7 @@ Linus:
 
 - [x] PAW
 - [x] PF-FG VPN
-- [ ] captive Portal (FG)
+- [x] captive Portal (FG)
 - [x] Bogons
 - [x] Webfilter
 - [x] DMVPN (verschlüsselt)
@@ -12,7 +12,7 @@ Linus:
 - [x] Distrubution Lists
 - [x] pfsense
 - [x] wireguard nach pfsense auf PAW
-- [ ] PAW - Standort 1 OpenVPN
+- [x] PAW - Standort 1 OpenVPN
 
 Basti:
 
