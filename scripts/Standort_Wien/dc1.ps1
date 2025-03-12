@@ -275,11 +275,14 @@ function Add-GPOs {
 
     # Drive Mount
     New-GPO -Name $driveMountGpoName | Out-Null
-    $keyPath = "HKCU\Network\F:"
-    Set-GPRegistryValue -Name $driveMountGpoName -Key $keyPath -ValueName "RemotePath" -Type String -Value "$sharePath"
+    $keyPath = "HKCU\Network\F"
+    Set-GPRegistryValue -Name $driveMountGpoName -Key $keyPath -ValueName "ConnectFlags" -Type DWord -Value 0
+    Set-GPRegistryValue -Name $driveMountGpoName -Key $keyPath -ValueName "ConnectionType" -Type DWord -Value 1
     Set-GPRegistryValue -Name $driveMountGpoName -Key $keyPath -ValueName "DeferFlags" -Type DWord -Value 1
+    Set-GPRegistryValue -Name $driveMountGpoName -Key $keyPath -ValueName "ProviderName" -Type String -Value "Microsoft Windows Network"
+    Set-GPRegistryValue -Name $driveMountGpoName -Key $keyPath -ValueName "RemotePath" -Type String -Value "$sharePath"
     Set-GPRegistryValue -Name $driveMountGpoName -Key $keyPath -ValueName "UserName" -Type String -Value ""
-    Set-GPRegistryValue -Name $driveMountGpoName -Key $keyPath -ValueName "ProviderName" -Type String -Value "Share"
+
 
     # Firewall
     New-GPO -Name $firewallGpoName | Out-Null
@@ -290,7 +293,7 @@ function Add-GPOs {
     $gpo | Set-GPPermission -PermissionLevel GpoApply -TargetName "Domain Computers" -TargetType Group 
 
     # Enable VBS
-    New-GPO -Name "Device Hardening" | Out-Null
+    New-GPO -Name $vbsGpoName | Out-Null
     Set-GPRegistryValue -Name $vbsGpoName -Key "HKLM\SYSTEM\CurrentControlSet\Control\DeviceGuard" -ValueName "EnableVirtualizationBasedSecurity" -Type DWord -Value 1
 
     # Enable Credential Guard
@@ -309,8 +312,8 @@ function Add-GPOs {
     New-GPLink -Name $loginScreenGpoName -Target "$distinguishedName" -LinkEnabled Yes
     New-GPLink -Name $firewallGpoName -Target "$distinguishedName" -LinkEnabled Yes
 
-    New-GPLink -Name $vbsGpoName -Target "CN=Client1,CN=Computers,$distinguishedName" -LinkEnabled Yes
-    New-GPLink -Name $credentialGuardGpoName -Target "CN=Client1,CN=Computers,$distinguishedName" -LinkEnabled Yes
+    New-GPLink -Name $vbsGpoName -Target "CN=Client2,CN=Computers,$distinguishedName" -LinkEnabled Yes
+    New-GPLink -Name $credentialGuardGpoName -Target "CN=Client2,CN=Computers,$distinguishedName" -LinkEnabled Yes
 }
 
 function Set-RoamingProfiles {
@@ -327,6 +330,22 @@ function Set-RoamingProfiles {
         Set-ADUser -Identity $user.UserName -ProfilePath $userPath
     }
 } 
+
+function Set-AuditPolicies {
+    auditpol /set /subcategory:"Credential Validation" /success:enable /failure:enable
+    auditpol /set /subcategory:"Logon" /success:enable /failure:enable
+    auditpol /set /subcategory:"File System" /success:enable /failure:enable
+    auditpol /set /subcategory:"Audit Policy Change" /success:enable /failure:enable
+}
+
+function Install-IPAM {
+    Install-WindowsFeature -Name IPAM -IncludeManagementTools
+    Invoke-IpamGpoProvisioning -Domain "wien.FruUhl.at" -GpoPrefixName "IPAM" -IpamServerFqdn "dc1.wien.FruUhl.at" -DelegatedGpoUser "Domain Admins" -Force
+    Invoke-IpamServerProvisioning -ProvisioningMethod Automatic -GpoPrefix IPAM -Force
+    Set-IpamConfiguration -Domain "wien.FruUhl.at" -DiscoverDomainController $true -DiscoverDnsServer $true -DiscoverDhcpServer $true
+    Add-IpamDiscoveryDomain -Name "wien.FruUhl.at"
+    Start-IpamDiscovery -Domain "wien.FruUhl.at"
+}
 
 switch ($stage) {
     1 { 

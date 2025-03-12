@@ -27,7 +27,7 @@ aaa authentication login default group DC local
 
 aaa session-id common
 radius server DC
-  address ipv4 192.168.10.1 auth-port 1812 acct-port 1813
+  address ipv4 192.168.10.6 auth-port 1812 acct-port 1813
   key ganzgeheim123!
 privilege exec level 1 show config
 ip radius source-interface vlan 50

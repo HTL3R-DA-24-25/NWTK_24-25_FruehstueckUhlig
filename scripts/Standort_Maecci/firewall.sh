@@ -13,7 +13,10 @@ network:
         macaddress: 00:0C:29:2B:BC:0A
       dhcp4: false
       addresses:
-        - 103.152.126.40/29
+        - 103.152.126.42/29
+      routes:
+        - to: default
+          via: 103.152.126.41
       set-name: outside
     inside:
       match:
