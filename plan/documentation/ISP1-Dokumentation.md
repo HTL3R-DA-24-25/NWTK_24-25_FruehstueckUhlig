@@ -179,7 +179,7 @@ Hier als Beispiel die Interfaces des Border Router 1.
 
 ## BGP
 
-Es gibt eine BGP Beziehung zwischen allen den Border Routern. Die Loopnacks werden als Source genommen damit man nicht von einem Physichen Interface abhängig ist. Es werden auch die public Netzte über BGP bekanntgegeben.
+Es gibt eine BGP Beziehung zwischen allen den Border Routern. Die Loopbacks werden als Source genommen damit man nicht von einem Physichen Interface abhängig ist. Es werden auch die public Netzte über BGP bekanntgegeben.
 
 > ```bash
 > ! BGP-Konfiguration
