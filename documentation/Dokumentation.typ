@@ -25,13 +25,13 @@
     columns: 1fr,
     rows: (20pt, 1fr),
   [= Netzplan],
-  align(center)[#image("../Netzplan/Netzplan.png")]
+  align(center)[#image("./Netzplan/Netzplan.png")]
   )
 ]
 
 = ISP 1
 == Plan
-#image("../Netzplan/Netzplan-ISP1.png")
+#image("./Netzplan/Netzplan-ISP1.png")
 
 == Allgemeine Informationen
 
@@ -262,7 +262,7 @@ Es gibt eine BGP Beziehung zwischen allen den Border Routern. Die Loopnacks werd
 
 = ISP 2
 == Plan
-#image("../Netzplan/Netzplan-ISP2.png")
+#image("./Netzplan/Netzplan-ISP2.png")
 == Allgemeine Informationen
 
 - 3 Border Router
@@ -429,7 +429,7 @@ end
 = Standort Wien
 == Plan
 
-#image("../Netzplan/Netzplan-Wien.png")
+#image("./Netzplan/Netzplan-Wien.png")
 
 #table(
   columns: (1fr, auto),
@@ -465,10 +465,10 @@ Das Active-Directory Gruppen-Prinzip ist nach AGUDLP aufgebaut, die OUs nach Bus
 
 
 === Gruppen
-#image("../AD/Gruppen/Gruppen.png")
+#image("./AD/Gruppen/Gruppen.png")
 
 === OUs 
-#image("../AD/OUs/OU-Struktur.png")
+#image("./AD/OUs/OU-Struktur.png")
 
 === Screenshots
 TODO: Screenshot der CA - pkiview.msc
@@ -517,7 +517,7 @@ Die Switches sind mittels Radius-Server authentifiziert. Der Radius-Server ist a
   
 = Standort Rennweg
 == Plan
-#image("../Netzplan/Netzplan-Rennweg.png")
+#image("./Netzplan/Netzplan-Rennweg.png")
 #table(
   columns: (1fr, auto),
   inset: 10pt,
@@ -539,7 +539,7 @@ Rennweg ist eine 2. Site der wien.FruUhl.at Domain. Der Domaincontroller hier is
 
 = Standort Graz
 == Plan
-#image("../Netzplan/Netzplan-Graz.png")
+#image("./Netzplan/Netzplan-Graz.png")
 #table(
   columns: (1fr, auto),
   inset: 10pt,
