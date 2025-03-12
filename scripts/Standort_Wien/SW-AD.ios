@@ -65,6 +65,7 @@ vlan 101
     exit
 vlan 200
     name RSPAN
+    remote-span
     exit
 
 int vlan 50
@@ -92,7 +93,7 @@ int g0/1
     switchport trunk encaps dot1q
     switchport mode trunk
     switchport trunk native vlan 99
-    switchport trunk allowed vlan 1,10,50,99,100,101
+    switchport trunk allowed vlan 1,10,50,99,100,101,200
     no shutdown
     exit
 
@@ -114,14 +115,19 @@ int g1/1
     no shutdown
     exit
 
+ip flow-export source g2/0
+ip flow-export version 9
+ip flow-export destination 192.168.0.3 2055
+
 int g2/0
     desc to_AD
     switchport mode access
     switchport access vlan 10
+    ip flow ingress
     no shutdown
     exit
 
-monitor session 1 source interface g3/0
+monitor session 1 source interface g2/0
 monitor session 1 destination remote vlan 200
 
 spanning-tree mode rapid-pvst

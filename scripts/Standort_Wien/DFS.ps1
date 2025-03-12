@@ -73,7 +73,7 @@ function Install-DFS {
     $folders = @(
         @{
             Name        = "RoamingProfiles"
-            ShareName   = "RoamingProfiles$"  # Hidden share (optional)
+            ShareName   = "RoamingProfiles$" 
             Description = "Folder for Roaming User Profiles"
             Permissions = "AdminFull"  # Set permissions for the share
         },
