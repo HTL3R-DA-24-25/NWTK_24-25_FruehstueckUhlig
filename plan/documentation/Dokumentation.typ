@@ -3,25 +3,31 @@
 
 #show: doc => conf(
   doc,
-  title: [NTP und FTP in GNS3 testen],
-  projekttitel: "Big Topo",
+  title: [Little Big Topo Dokumentation],
+  projekttitel: "Little Big Topo",
   auftraggeber: ("SDO", "KUS"),
-  auftragnehmer: ("Bastian Uhlig",),
+  auftragnehmer: ("Linus Frühstück, Bastian Uhlig",),
   schuljahr: "2024/25",
   klasse: "5CN",
   inhaltsverzeichnis: true,
   enumerate: true,
   versions: (
     (version: "v1.0", datum: "12.03.2025", autor: "Bastian Uhlig", aenderung: "Erstellung des Dokuments"),
-    (version: "v1.1", datum: "12.03.2025", autor: "Linuns Frühstück", aenderung: "ISP1"),
-    (version: "v1.2", datum: "13.03.2025", autor: "Linuns Frühstück", aenderung: "ISP2"),
+    (version: "v1.1", datum: "12.03.2025", autor: "Linus Frühstück", aenderung: "ISP1"),
+    (version: "v1.2", datum: "13.03.2025", autor: "Linus Frühstück", aenderung: "ISP2"),
     (version: "v1.3", datum: "13.03.2025", autor: "Bastian Uhlig", aenderung: "AD Dokumentation"),
+    (version: "v1.4", datum: "13.03.2025", autor: "Linus Frühstück", aenderung: "Firewalls"),
   )
 )
-= Netzplan
-#set page(flipped: true)
-#image("../Netzplan/Netzplan.png")
-#set page(flipped: false)
+
+#page(flipped: true)[
+  #grid(
+    columns: 1fr,
+    rows: (20pt, 1fr),
+  [= Netzplan],
+  align(center)[#image("../Netzplan/Netzplan.png")]
+  )
+]
 
 = ISP 1
 == Plan
@@ -419,6 +425,7 @@ int tun1
 end
 ```
 
+
 = Standort Wien
 == Plan
 
@@ -454,7 +461,8 @@ Dies ist der Hauptstandort mit den wichtigsten Active-Directory Komponenten. Auc
 
 == Windows
 Dies ist der Hauptstandort der Domain wien.FruUhl.at. Hier befinden sich die beiden Domaincontroller DC1 und DC2, sowie der Certificate Authority Server CA. Der Webserver ist sowohl als CDP in Verwendung sowie als Radius-Server zur Authentifizierung bei den Switches des Netzwerkes. Auf dem DFS-Server befinden sind Freigaben für Benutzer, darunter abteilungsweite Shares und die Ablageorte für Roaming-Profiles. \
-Das Active-Directory Gruppen-Prinzip ist nach AGUDLP aufgebaut, die OUs nach Business Unit Model. 
+Das Active-Directory Gruppen-Prinzip ist nach AGUDLP aufgebaut, die OUs nach Business Unit Model. \
+
 
 === Gruppen
 #image("../AD/Gruppen/Gruppen.png")
@@ -492,6 +500,21 @@ Alle Switches sind konfiguriert, ihre Log-Daten an den Syslog-Server zu senden. 
 === Authentication
 Die Switches sind mittels Radius-Server authentifiziert. Der Radius-Server ist auf dem WEB-Server installiert und konfiguriert, da ein GUI benötigt wird, und dieser Server der einzige mit GUI ist.
 
+== Features FG Wien
+- HA Cluster
+- NAT/PAT
+- Granulare Policies
+- Traffic Shaping
+- Captive Portal
+- DHCP
+- Subinterfaces
+- Site2Site VPN mit anderer FortiGate
+  - (FG Rennweg)
+- Site2Site VPN mit PfSense
+  - (PF Graz)
+- RAS VPN zu WinCli auf IPsec Basis
+- Redundanter ISP
+  
 = Standort Rennweg
 == Plan
 #image("../Netzplan/Netzplan-Rennweg.png")
@@ -506,6 +529,13 @@ Die Switches sind mittels Radius-Server authentifiziert. Der Radius-Server ist a
 )
 == Allgemeine Informationen
 Rennweg ist eine 2. Site der wien.FruUhl.at Domain. Der Domaincontroller hier ist ein Read-Only Domaincontroller. Der Jumphost ist für die Administration des Servers zuständig, denn nur über ihn kann eine RDP-Session aufgebaut werden.
+
+== Features FG Rennweg
+- NAT/PAT
+- Site2Site VPN mit anderer FortiGate
+  - (FG Wien)
+- OSPF um private Netzte für VRF bekanntzugeben
+- Distribution Listen um Netze nicht via OSPF zu teilen
 
 = Standort Graz
 == Plan
@@ -525,4 +555,14 @@ Rennweg ist eine 2. Site der wien.FruUhl.at Domain. Der Domaincontroller hier is
 == Allgemeine Informationen
 Graz ist eine Sub-Domain der wien.FruUhl.at Domain. Auf dem Standort befindet sich weiters ein Active Directory gejointer Linux Client. Der DNS-Server bind9 wird als caching Forwarder verwendet und auf dem Grafana-Dashboard sind Statistiken der Serverauslastung zu sehen, welche mittels Prometheus gesammelt werden. Der Server wird auch statisch nach außen genattet, womit er public erreichbar ist.
 
+== Features PF Graz
+- NAT/PAT
+- Subinterfaces
+- Site2Site VPN mit FortiGate
+  - (FG Wien)
+- OSPF um private Netzte für VRF bekanntzugeben
+- Distribution Listen um Netze nicht via OSPF zu teilen
+- Static NAT
+  - Grafana Server
+- WireGuard RAS VPN für WinCli
 
